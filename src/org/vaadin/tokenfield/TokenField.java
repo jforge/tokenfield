@@ -2,13 +2,12 @@ package org.vaadin.tokenfield;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.Set;
 
 import com.vaadin.data.Container;
 import com.vaadin.terminal.Resource;
-import com.vaadin.ui.AbstractOrderedLayout;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
@@ -16,28 +15,33 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.AbstractSelect.NewItemHandler;
 import com.vaadin.ui.Button.ClickEvent;
 
-/*- 
- * TODO
- * 
- *  + should perhaps implement Container.Editor (or .Viewer)
- *  + possibility to [react to|stop] add and remove token actions
- *  
- -*/
-
 /**
  * A kind of multiselect ComboBox. When the user selects a token (or inputs a
  * new token, TokenField defaults to allowing new tokens), the value is added as
  * a clickable "token button" before or after the input box. Duplicate
  * selections are not allowed.
+ * 
  * <p>
  * TokenField defaults to using HorizontalLayout, but virtually any Layout can
  * be used.
  * </p>
+ * 
  * <p>
- * The token buttons can be styled using a custom {@link ButtonConfigurator} -
- * the {@link DefaultButtonConfigurator} (that can be extended) sets the
- * caption, description, and stylename for the button.
+ * The token buttons can be styled customized by overriding
+ * {@link #configureTokenButton(TokenField, Object, Button).
  * </p>
+ * 
+ * <p>
+ * Custom functionality when adding and removing tokens, such as showing a
+ * notification for duplicates or confirming removal, is done by overriding
+ * 
+ * 
+ * 
+ * 
+ * 
+ * {@link #addToken(Object)} and {@link #removeToken(Object)} respectively.
+ * </p>
+ * 
  * <p>
  * The content of the input (ComboBox) can be bound to a Container datasource,
  * and filtering can be used. Note that the TokenField can select values that
@@ -48,13 +52,12 @@ import com.vaadin.ui.Button.ClickEvent;
  * {@link NewItemHandler) ({@link #setNewTokenHandler(NewItemHandler)}) in
  * order to provide a sensible caption for the new token.
  * </p>
+ * 
  * <p>
  * TokenField is a full-fledged field - it can be bound to a Property
  * datasource, and supports buffering.
  * </p>
- * <p>
  * 
- * </p>
  * <p>
  * Note that term <i>token</i> as used in the API is often interchangeable with
  * the term <i>item</i> seen elsewhere in the Vaadin API; e.g
@@ -78,15 +81,13 @@ public class TokenField extends CustomField implements Container.Editor {
         BEFORE
     }
 
-    private Layout layout;
+    protected Layout layout;
 
-    private ComboBox cb = new ComboBox();
+    protected ComboBox cb = new ComboBox();
 
-    private InsertPosition instertPosition = InsertPosition.BEFORE;
+    protected InsertPosition instertPosition = InsertPosition.BEFORE;
 
-    private LinkedList<Button> buttons = new LinkedList<Button>();
-
-    private ButtonConfigurator configurator = new DefaultButtonConfigurator();
+    protected LinkedHashMap<Object, Button> buttons = new LinkedHashMap<Object, Button>();
 
     /**
      * Create a new TokenField with a caption and a {@link InsertPosition}.
@@ -190,20 +191,9 @@ public class TokenField extends CustomField implements Container.Editor {
                     com.vaadin.data.Property.ValueChangeEvent event) {
                 final Object val = event.getProperty().getValue();
                 if (val != null) {
-                    Set<Object> set = (Set<Object>) getValue();
-                    if (set == null) {
-                        set = new LinkedHashSet<Object>();
-                    }
-                    if (set.contains(val)) {
-                        cb.setValue(null);
-                        return;
-                    }
-                    HashSet<Object> newSet = new LinkedHashSet<Object>(set);
-                    newSet.add(val);
-                    addValue(val);
-                    setValue(newSet);
-                    cb.setValue(null);
+                    addToken(val);
                 }
+                cb.setValue(null);
                 cb.focus();
 
             }
@@ -218,7 +208,7 @@ public class TokenField extends CustomField implements Container.Editor {
         if (instertPosition == InsertPosition.AFTER) {
             layout.addComponent(cb);
         }
-        for (Button b2 : buttons) {
+        for (Button b2 : buttons.values()) {
             layout.addComponent(b2);
         }
         if (instertPosition == InsertPosition.BEFORE) {
@@ -227,7 +217,6 @@ public class TokenField extends CustomField implements Container.Editor {
     }
 
     protected void setInternalValue(Object newValue) {
-        System.err.println("setInternalValue(" + newValue + ")");
         super.setInternalValue(newValue);
         layout.removeAllComponents();
         buttons.clear();
@@ -235,42 +224,64 @@ public class TokenField extends CustomField implements Container.Editor {
         Set<Object> vals = (Set<Object>) newValue;
         if (vals != null) {
             for (Object id : vals) {
-                addValue(id);
+                addTokenButton(id);
             }
         }
     }
 
-    private void addValue(final Object val) {
+    private void addTokenButton(final Object val) {
         Button b = new Button();
-        configurator.configureTokenButton(this, val, b);
+        configureTokenButton(this, val, b);
         b.addListener(new Button.ClickListener() {
-
             private static final long serialVersionUID = -1943432188848347317L;
 
             public void buttonClick(ClickEvent event) {
-                layout.removeComponent(event.getButton());
-                buttons.remove(event.getButton());
-                Set<Object> set = (Set<Object>) getValue();
-                LinkedHashSet<Object> newSet = new LinkedHashSet<Object>(set);
-                newSet.remove(val);
-                if (set == null || !newSet.containsAll(set)) {
-                    setValue(newSet);
-                }
+                removeToken(val);
             }
         });
-        buttons.add(b);
+        buttons.put(val, b);
 
-        if (layout instanceof AbstractOrderedLayout) {
-            ((AbstractOrderedLayout) layout).addComponent(b,
-                    (instertPosition == InsertPosition.AFTER ? buttons.size()
-                            : buttons.size() - 1));
-        } else if (instertPosition == InsertPosition.BEFORE) {
+        if (instertPosition == InsertPosition.BEFORE) {
             layout.replaceComponent(cb, b);
             layout.addComponent(cb);
         } else {
-            rebuild();
+            layout.addComponent(b);
         }
 
+    }
+
+    protected void addToken(Object tokenId) {
+        Set<Object> set = (Set<Object>) getValue();
+        if (set == null) {
+            set = new LinkedHashSet<Object>();
+        }
+        if (set.contains(tokenId)) {
+            return;
+        }
+        HashSet<Object> newSet = new LinkedHashSet<Object>(set);
+        newSet.add(tokenId);
+        addTokenButton(tokenId);
+        setValue(newSet);
+    }
+
+    protected void removeToken(Object tokenId) {
+        Button button = buttons.get(tokenId);
+        layout.removeComponent(button);
+        buttons.remove(button);
+        Set<Object> set = (Set<Object>) getValue();
+        LinkedHashSet<Object> newSet = new LinkedHashSet<Object>(set);
+        newSet.remove(tokenId);
+        if (set == null || !newSet.containsAll(set)) {
+            setValue(newSet);
+        }
+    }
+
+    protected void configureTokenButton(TokenField source, Object tokenId,
+            Button button) {
+        button.setCaption(source.getTokenCaption(tokenId) + " ×");
+        button.setIcon(source.getTokenIcon(tokenId));
+        button.setDescription("Click to remove");
+        button.setStyleName(Button.STYLE_LINK);
     }
 
     /**
@@ -417,32 +428,4 @@ public class TokenField extends CustomField implements Container.Editor {
         return Set.class;
     }
 
-    public ButtonConfigurator getButtonConfigurator() {
-        return configurator;
-    }
-
-    public void setButtonConfigurator(ButtonConfigurator configurator) {
-        if (configurator == null) {
-            this.configurator = new DefaultButtonConfigurator();
-        } else {
-            this.configurator = configurator;
-        }
-    }
-
-    public static class DefaultButtonConfigurator implements ButtonConfigurator {
-
-        public void configureTokenButton(TokenField source, Object tokenId,
-                Button button) {
-            button.setCaption(source.getTokenCaption(tokenId) + " ⊠");
-            button.setIcon(source.getTokenIcon(tokenId));
-            button.setDescription("Click to remove");
-            button.setStyleName(Button.STYLE_LINK);
-        }
-
-    }
-
-    public interface ButtonConfigurator {
-        public void configureTokenButton(TokenField source, Object tokenId,
-                Button button);
-    }
 }
