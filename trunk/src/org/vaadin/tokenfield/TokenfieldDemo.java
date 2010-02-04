@@ -1,12 +1,14 @@
 package org.vaadin.tokenfield;
 
-import org.vaadin.tokenfield.TokenField.ButtonConfigurator;
+import java.util.Set;
+
 import org.vaadin.tokenfield.TokenField.InsertPosition;
 
 import com.vaadin.Application;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.VerticalLayout;
@@ -43,18 +45,18 @@ public class TokenfieldDemo extends Application {
 
         {
             // w/ datasource + configurator
-            final TokenField f = new TokenField();
-            f.setContainerDataSource(tokens);
-            f.setNewTokensAllowed(false);
-            f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS);
-            f.setTokenCaptionPropertyId("name");
-            f.setButtonConfigurator(new ButtonConfigurator() {
-                public void configureTokenButton(TokenField source,
+            final TokenField f = new TokenField() {
+                protected void configureTokenButton(TokenField source,
                         Object value, Button button) {
                     button.setCaption(source.getTokenCaption(value) + "<"
                             + value + ">");
                 }
-            });
+            };
+            f.setContainerDataSource(tokens);
+            f.setNewTokensAllowed(false);
+            f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS);
+            f.setTokenCaptionPropertyId("name");
+
             mainWindow.addComponent(f);
         }
 
@@ -79,16 +81,39 @@ public class TokenfieldDemo extends Application {
         }
 
         {
-            final TokenField f5 = new TokenField("Grid", new GridLayout(3, 3));
-            f5.setNewTokensAllowed(true);
-            f5.setButtonConfigurator(new ButtonConfigurator() {
-                public void configureTokenButton(TokenField source,
+            final TokenField f5 = new TokenField("Grid", new GridLayout(3, 3)) {
+                protected void configureTokenButton(TokenField source,
                         Object value, Button button) {
                     button.setCaption("" + value);
                     button.setWidth("195px");
                 }
-            });
+
+                protected void removeToken(Object tokenId) {
+                    Button b = buttons.get(tokenId);
+                    getWindow().showNotification("Removed " + b.getCaption());
+                    super.removeToken(tokenId);
+                }
+
+            };
+            f5.setNewTokensAllowed(true);
             mainWindow.addComponent(f5);
+        }
+
+        {
+            final TokenField f = new TokenField("CSS", new CssLayout()) {
+
+                @Override
+                protected void addToken(Object tokenId) {
+                    Set<Object> set = (Set<Object>) getValue();
+                    if (set != null && set.contains(tokenId)) {
+                        getWindow().showNotification("Duplicate");
+                    }
+                    super.addToken(tokenId);
+                }
+
+            };
+            f.setNewTokensAllowed(true);
+            mainWindow.addComponent(f);
         }
 
         {
