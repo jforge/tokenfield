@@ -34,11 +34,6 @@ import com.vaadin.ui.Button.ClickEvent;
  * <p>
  * Custom functionality when adding and removing tokens, such as showing a
  * notification for duplicates or confirming removal, is done by overriding
- * 
- * 
- * 
- * 
- * 
  * {@link #addToken(Object)} and {@link #removeToken(Object)} respectively.
  * </p>
  * 
@@ -282,6 +277,17 @@ public class TokenField extends CustomField implements Container.Editor {
         button.setIcon(source.getTokenIcon(tokenId));
         button.setDescription("Click to remove");
         button.setStyleName(Button.STYLE_LINK);
+    }
+
+    public Layout getLayout() {
+        return layout;
+    }
+
+    public void setLayout(Layout newLayout) {
+        layout.removeAllComponents();
+        layout = newLayout;
+        setCompositionRoot(layout);
+        rebuild();
     }
 
     /**
