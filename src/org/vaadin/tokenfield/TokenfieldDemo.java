@@ -12,6 +12,7 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.GridLayout;
@@ -22,8 +23,13 @@ import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
+import com.vaadin.ui.Button.ClickEvent;
 
 public class TokenfieldDemo extends Application {
+    // TODO make more real-life examples:
+    // - email address entry
+    // - tag entry, icon + caption -> icon + tooltip
+
     @Override
     public void init() {
         setMainWindow(new DemoWindow());
@@ -112,6 +118,16 @@ public class TokenfieldDemo extends Application {
                 });
                 controls.addComponent(ip);
 
+                final CheckBox cb = new CheckBox("Read-only");
+                cb.setImmediate(true);
+                cb.setValue(f.isReadOnly());
+                cb.addListener(new ValueChangeListener() {
+                    public void valueChange(ValueChangeEvent event) {
+                        f.setReadOnly(cb.booleanValue());
+                    }
+                });
+                controls.addComponent(cb);
+
             }
 
             {
@@ -133,11 +149,11 @@ public class TokenfieldDemo extends Application {
                 lo.setSpacing(true);
 
                 final TokenField f = new TokenField(lo) {
-                    protected void configureTokenButton(TokenField source,
-                            Object tokenId, Button button) {
+                    protected void configureTokenButton(Object tokenId,
+                            Button button) {
                         // otherwise default, but change caption
-                        super.configureTokenButton(source, tokenId, button);
-                        button.setCaption(source.getTokenCaption(tokenId) + "<"
+                        super.configureTokenButton(tokenId, button);
+                        button.setCaption(getTokenCaption(tokenId) + "<"
                                 + tokenId + ">");
                     }
                 };
@@ -151,26 +167,49 @@ public class TokenfieldDemo extends Application {
 
             {
                 /*
-                 * Here, addToken() and removeToken() is customized to show a
-                 * notification. We could do more advanced stuff too.
+                 * Here, onTokenInput() and onTokenClicked() is customized.
                  */
                 Panel p = new Panel("Add / remove actions");
                 addComponent(p);
 
                 final TokenField f = new TokenField() {
 
-                    protected void addToken(Object tokenId) {
+                    protected void onTokenInput(Object tokenId) {
                         Set<Object> set = (Set<Object>) getValue();
                         if (set != null && set.contains(tokenId)) {
                             getWindow().showNotification("Duplicate");
+                        } else {
+                            getWindow().showNotification("Added");
+                            super.addToken(tokenId);
                         }
-                        super.addToken(tokenId);
                     }
 
-                    protected void removeToken(Object tokenId) {
-                        Button b = buttons.get(tokenId);
-                        getWindow().showNotification("Removed " + tokenId);
-                        super.removeToken(tokenId);
+                    protected void onTokenClicked(final Object tokenId) {
+                        final TokenField field = this;
+                        final Window w = new Window("Are you sure?");
+                        w.center();
+                        w.setModal(true);
+                        HorizontalLayout l = new HorizontalLayout();
+                        l.setSpacing(true);
+                        l.setMargin(true);
+                        w.setContent(l);
+                        Button cancel = new Button("Cancel",
+                                new Button.ClickListener() {
+                                    public void buttonClick(ClickEvent event) {
+                                        DemoWindow.this.removeWindow(w);
+                                    }
+                                });
+                        cancel.setStyleName(Button.STYLE_LINK);
+                        w.addComponent(cancel);
+                        Button remove = new Button("Remove",
+                                new Button.ClickListener() {
+                                    public void buttonClick(ClickEvent event) {
+                                        field.removeToken(tokenId);
+                                        DemoWindow.this.removeWindow(w);
+                                    }
+                                });
+                        w.addComponent(remove);
+                        getWindow().addWindow(w);
                     }
                 };
                 f.setNewTokensAllowed(true);

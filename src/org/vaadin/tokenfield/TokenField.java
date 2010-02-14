@@ -15,7 +15,10 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.AbstractSelect.NewItemHandler;
 import com.vaadin.ui.Button.ClickEvent;
 
+// TODO remove the addNewTokenHandler in favor of a call to onTokenInput(Object tokenId, boolean isNew)
+
 /**
+ * 
  * A kind of multiselect ComboBox. When the user selects a token (or inputs a
  * new token, TokenField defaults to allowing new tokens), the value is added as
  * a clickable "token button" before or after the input box. Duplicate
@@ -27,20 +30,41 @@ import com.vaadin.ui.Button.ClickEvent;
  * </p>
  * 
  * <p>
+ * Can be customized in several ways by overriding certain methods. When the
+ * user select or enters a new token, the following happens:
+ * <ul>
+ * <li>If the token is new (not in the container) and new tokens are allowed (
+ * {@link #setNewTokensAllowed(boolean) }), the newItemHander is called. TODO</li>
+ * <li>{@link #onTokenInput(Object)} is called, by default it just calls</li>
+ * <li>{@link #addToken(Object)} which will eventually cause a call to</li>
+ * <li>{@link #configureTokenButton(Object, Button)}</li>
+ * </ul>
+ * Custom functionality when adding and removing tokens, such as showing a
+ * notification for duplicates or confirming removal, is done by overriding
+ * {@link #onTokenInpu(Object)} and {@link #onTokenClicked(Object)}
+ * respectively.<br/>
  * The token buttons can be styled customized by overriding
  * {@link #configureTokenButton(TokenField, Object, Button).
  * </p>
- * 
- * <p>
- * Custom functionality when adding and removing tokens, such as showing a
- * notification for duplicates or confirming removal, is done by overriding
- * {@link #addToken(Object)} and {@link #removeToken(Object)} respectively.
- * </p>
- * 
  * <p>
  * The content of the input (ComboBox) can be bound to a Container datasource,
  * and filtering can be used. Note that the TokenField can select values that
  * are not present in the ComboBox.<br/>
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
  * Also note that if you use {@link #setTokenCaptionPropertyId(Object)} (to use
  * a specific property as token caption) AND allow new tokens to be input (
  * {@link #setNewTokensAllowed(boolean)}, you should probably use a custom
@@ -54,12 +78,15 @@ import com.vaadin.ui.Button.ClickEvent;
  * </p>
  * 
  * <p>
- * Note that term <i>token</i> as used in the API is often interchangeable with
- * the term <i>item</i> seen elsewhere in the Vaadin API; e.g
+ * Note "token" and "tokenId" is often used interchangeably in the documentation
+ * - usually the token is just a string that is the id as well. The term
+ * <i>Token</i> as used in the method names is often interchangeable with the
+ * term <i>item</i> seen elsewhere in the Vaadin API; e.g
  * {@link #setTokenCaption(Object, String)} works exactly as
  * {@link ComboBox#setItemCaption(Object, String)}, and <code>tokenId</code> is
  * the same as <code>itemId</code>.
  * </p>
+ * 
  */
 public class TokenField extends CustomField implements Container.Editor {
 
@@ -76,12 +103,24 @@ public class TokenField extends CustomField implements Container.Editor {
         BEFORE
     }
 
+    /**
+     * The layout currently in use
+     */
     protected Layout layout;
 
+    /**
+     * The ComboBox used for input - should probably not be touched.
+     */
     protected ComboBox cb = new ComboBox();
 
-    protected InsertPosition instertPosition = InsertPosition.BEFORE;
+    /**
+     * Current insert position
+     */
+    protected InsertPosition insertPosition = InsertPosition.BEFORE;
 
+    /**
+     * Maps the tokenId (itemId) to the token button
+     */
     protected LinkedHashMap<Object, Button> buttons = new LinkedHashMap<Object, Button>();
 
     /**
@@ -94,7 +133,7 @@ public class TokenField extends CustomField implements Container.Editor {
      */
     public TokenField(String caption, InsertPosition insertPosition) {
         this();
-        this.instertPosition = insertPosition;
+        this.insertPosition = insertPosition;
         setCaption(caption);
     }
 
@@ -146,7 +185,7 @@ public class TokenField extends CustomField implements Container.Editor {
     public TokenField(String caption, Layout lo, InsertPosition insertPosition) {
         this(lo);
         setCaption(caption);
-        this.instertPosition = insertPosition;
+        this.insertPosition = insertPosition;
     }
 
     /**
@@ -160,7 +199,7 @@ public class TokenField extends CustomField implements Container.Editor {
      */
     public TokenField(Layout lo, InsertPosition insertPosition) {
         this(lo);
-        this.instertPosition = insertPosition;
+        this.insertPosition = insertPosition;
     }
 
     /**
@@ -184,13 +223,12 @@ public class TokenField extends CustomField implements Container.Editor {
 
             public void valueChange(
                     com.vaadin.data.Property.ValueChangeEvent event) {
-                final Object val = event.getProperty().getValue();
-                if (val != null) {
-                    addToken(val);
+                final Object tokenId = event.getProperty().getValue();
+                if (tokenId != null) {
+                    onTokenInput(tokenId);
                 }
                 cb.setValue(null);
                 cb.focus();
-
             }
         });
 
@@ -198,19 +236,29 @@ public class TokenField extends CustomField implements Container.Editor {
 
     }
 
+    /*
+     * Rebuilds from scratch
+     */
     private void rebuild() {
         layout.removeAllComponents();
-        if (instertPosition == InsertPosition.AFTER) {
+        if (!isReadOnly() && insertPosition == InsertPosition.AFTER) {
             layout.addComponent(cb);
         }
         for (Button b2 : buttons.values()) {
             layout.addComponent(b2);
         }
-        if (instertPosition == InsertPosition.BEFORE) {
+        if (!isReadOnly() && insertPosition == InsertPosition.BEFORE) {
             layout.addComponent(cb);
         }
     }
 
+    /*
+     * Essentially rebuilds from scratch when the internal value is set; this
+     * could be more intelligent, but since only the simplest additions can be
+     * made w/o rebuild, this is ok for now.
+     * 
+     * @see org.vaadin.tokenfield.CustomField#setInternalValue(java.lang.Object)
+     */
     protected void setInternalValue(Object newValue) {
         super.setInternalValue(newValue);
         layout.removeAllComponents();
@@ -224,19 +272,47 @@ public class TokenField extends CustomField implements Container.Editor {
         }
     }
 
+    /**
+     * Called when the user is adding a new token via the UI; called after the
+     * newItemHandler. Can be used to make customize the adding process; e.g to
+     * notify that the token was not added because it's duplicate, to ask for
+     * additional information, or to dissalow addition due to some heuristics
+     * (not both A and Q).<br/>
+     * The default is to call {@link #addToken(Object)} which will add the token
+     * if it's not a duplicate.
+     * 
+     * @param tokenId
+     *            the token id selected (or input)
+     */
+    protected void onTokenInput(Object tokenId) {
+        addToken(tokenId);
+    }
+
+    /**
+     * Called when the token button is clicked, which by default removes the
+     * token by calling {@link #removeToken(Object)}. The behavior can be
+     * customized, e.g present a confirmation dialog.
+     * 
+     * @param tokenId
+     *            the id of the token that was clicked
+     */
+    protected void onTokenClicked(Object tokenId) {
+        removeToken(tokenId);
+    }
+
     private void addTokenButton(final Object val) {
         Button b = new Button();
-        configureTokenButton(this, val, b);
+        configureTokenButton(val, b);
         b.addListener(new Button.ClickListener() {
             private static final long serialVersionUID = -1943432188848347317L;
 
             public void buttonClick(ClickEvent event) {
-                removeToken(val);
+                onTokenClicked(val);
             }
         });
         buttons.put(val, b);
 
-        if (instertPosition == InsertPosition.BEFORE) {
+        if (insertPosition == InsertPosition.BEFORE) {
             layout.replaceComponent(cb, b);
             layout.addComponent(cb);
         } else {
@@ -245,7 +321,26 @@ public class TokenField extends CustomField implements Container.Editor {
 
     }
 
-    protected void addToken(Object tokenId) {
+    /**
+     * Adds a token if that token does not already exist.
+     * <p>
+     * Note that tokens are not automatically added to the token container. This
+     * means you can add tokens without adding them to the container (that might
+     * be bound to some data store), and without making them available to the
+     * user in the suggestion dropdown. <br/>
+     * This also means that when new tokens are disallowed (
+     * {@link #setNewTokensAllowed(boolean)}) you can programmatically add
+     * tokens that the user can not add him/herself. <br/>
+     * Consider adding the token to the container before calling
+     * {@link #addToken(Object)} if you're using a custom captions based on
+     * container/item properties, or if you want the token to be available to
+     * the user as a suggestion later.
+     * </p>
+     * 
+     * @param tokenId
+     *            the token to add
+     */
+    public void addToken(Object tokenId) {
         Set<Object> set = (Set<Object>) getValue();
         if (set == null) {
             set = new LinkedHashSet<Object>();
@@ -259,7 +354,17 @@ public class TokenField extends CustomField implements Container.Editor {
         setValue(newSet);
     }
 
-    protected void removeToken(Object tokenId) {
+    /**
+     * Removes the given token.
+     * <p>
+     * Note that the token is not removed from the container, so if it exists in
+     * the container, the token will still be available to the user.
+     * </p>
+     * 
+     * @param tokenId
+     *            the token to remove
+     */
+    public void removeToken(Object tokenId) {
         Button button = buttons.get(tokenId);
         layout.removeComponent(button);
         buttons.remove(button);
@@ -271,18 +376,42 @@ public class TokenField extends CustomField implements Container.Editor {
         }
     }
 
-    protected void configureTokenButton(TokenField source, Object tokenId,
-            Button button) {
-        button.setCaption(source.getTokenCaption(tokenId) + " ×");
-        button.setIcon(source.getTokenIcon(tokenId));
+    /**
+     * Configures the token button.
+     * <p>
+     * By default, the caption, icon, description, and style is set. Override to
+     * customize.<br/>
+     * Note that the default click-listener is added elsewhere and can not be
+     * changed here.
+     * </p>
+     * 
+     * @param tokenId
+     *            the token this button pertains to
+     * @param button
+     *            the button to be configured
+     */
+    protected void configureTokenButton(Object tokenId, Button button) {
+        button.setCaption(getTokenCaption(tokenId) + " ×");
+        button.setIcon(getTokenIcon(tokenId));
         button.setDescription("Click to remove");
         button.setStyleName(Button.STYLE_LINK);
     }
 
+    /**
+     * Gets the layout currently in use.
+     * 
+     * @return the current layout
+     */
     public Layout getLayout() {
         return layout;
     }
 
+    /**
+     * Sets layout used for laying out the tokens and the input.
+     * 
+     * @param newLayout
+     *            the layout to use
+     */
     public void setLayout(Layout newLayout) {
         layout.removeAllComponents();
         layout = newLayout;
@@ -300,7 +429,7 @@ public class TokenField extends CustomField implements Container.Editor {
      * @return the current token insert position
      */
     public InsertPosition getTokenInsertPosition() {
-        return instertPosition;
+        return insertPosition;
     }
 
     /**
@@ -312,8 +441,23 @@ public class TokenField extends CustomField implements Container.Editor {
      * @see InsertPosition
      */
     public void setTokenInsertPosition(InsertPosition insertPosition) {
-        if (this.instertPosition != insertPosition) {
-            this.instertPosition = insertPosition;
+        if (this.insertPosition != insertPosition) {
+            this.insertPosition = insertPosition;
+            rebuild();
+        }
+    }
+
+    public void setReadOnly(boolean readOnly) {
+        if (readOnly == isReadOnly()) {
+            return;
+        }
+        for (Button b : buttons.values()) {
+            b.setReadOnly(readOnly);
+        }
+        super.setReadOnly(readOnly);
+        if (readOnly) {
+            layout.removeComponent(cb);
+        } else {
             rebuild();
         }
     }
@@ -341,94 +485,227 @@ public class TokenField extends CustomField implements Container.Editor {
         return cb.getContainerDataSource();
     }
 
+    /**
+     * Sets whether or not tokens entered by the user that not present in the
+     * container will be automatically added to the container.
+     * 
+     * @see #setNewTokenHandler(NewItemHandler)
+     * @param allowNewTokens
+     *            true to automatically add tokens to the container
+     */
     public void setNewTokensAllowed(boolean allowNewTokens) {
         cb.setNewItemsAllowed(allowNewTokens);
     }
 
+    /**
+     * Checks whether od not new tokens are automatically added to the container
+     * 
+     * @see #setNewTokensAllowed(boolean)
+     * @return
+     */
     public boolean isNewTokensAllowed() {
         return cb.isNewItemsAllowed();
     }
 
+    /**
+     * Works as {@link ComboBox#setFilteringMode(int)}.
+     * 
+     * @see ComboBox#setFilteringMode(int)
+     * @param filteringMode
+     *            the desired filtering mode
+     */
     public void setFilteringMode(int filteringMode) {
         cb.setFilteringMode(filteringMode);
     }
 
+    /**
+     * Works as {@link ComboBox#getFilteringMode()}.
+     * 
+     * @see ComboBox#getFilteringMode()
+     * @param filteringMode
+     *            the desired filtering mode
+     */
     public int getFilteringMode() {
         return cb.getFilteringMode();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.vaadin.tokenfield.CustomField#focus()
+     */
     public void focus() {
         cb.focus();
     }
 
+    /**
+     * Gets the input prompt; works as {@link ComboBox#getInputPrompt()}.
+     * 
+     * @see ComboBox#getInputPrompt()
+     * @return the current input prompt
+     */
     public String getInputPrompt() {
         return cb.getInputPrompt();
     }
 
+    /**
+     * Gets the caption for the given token; the caption can be based on a
+     * property, just as in a ComboBox. Note that the string representation of
+     * the tokenId itself is always used if the container does not contain the
+     * id.
+     * 
+     * @param tokenId
+     *            the id of the token
+     * @return the caption
+     */
     public String getTokenCaption(Object tokenId) {
-        return cb.getItemCaption(tokenId);
+        if (cb.containsId(tokenId)) {
+            return cb.getItemCaption(tokenId);
+        } else {
+            return "" + tokenId;
+        }
     }
 
+    /**
+     * @see ComboBox#getItemCaptionMode()
+     * @return the current caption mode
+     */
     public int getTokenCaptionMode() {
         return cb.getItemCaptionMode();
     }
 
+    /**
+     * @see ComboBox#getItemCaptionPropertyId()
+     * @return the current caption property id
+     */
     public Object getTokenCaptionPropertyId() {
         return cb.getItemCaptionPropertyId();
     }
+
+    /**
+     * @see ComboBox#getItemIcon(Object)
+     * @return the icon for the given resource
+     */
 
     public Resource getTokenIcon(Object tokenId) {
         return cb.getItemIcon(tokenId);
     }
 
+    /**
+     * @see ComboBox#getItemIconPropertyId()
+     * @return the current item icon property id
+     */
+
     public Object getTokenIconPropertyId() {
         return cb.getItemIconPropertyId();
     }
 
+    /**
+     * Gets all tokenIds currenlty in the token container.
+     * 
+     * @return a collection of all tokenIds in the container
+     */
     public Collection getTokenIds() {
         return cb.getItemIds();
     }
+
+    /**
+     * @see ComboBox#getNewItemHandler()
+     * @return the current new item handler
+     */
 
     public NewItemHandler getNewTokenHandler() {
         return cb.getNewItemHandler();
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.vaadin.tokenfield.CustomField#getTabIndex()
+     */
     public int getTabIndex() {
         return cb.getTabIndex();
     }
 
+    /**
+     * Sets the input prompt; works as {@link ComboBox#setInputPrompt(String)}.
+     * 
+     * @see ComboBox#setInputPrompt(String)
+     * @return the current input prompt
+     */
     public void setInputPrompt(String inputPrompt) {
         cb.setInputPrompt(inputPrompt);
     }
 
+    /**
+     * sets the caption for the given token.
+     * 
+     * @see ComboBox#setItemCaption(Object, String)
+     * @param tokenId
+     *            token whose caption to set
+     * @param caption
+     *            the desired caption
+     */
     public void setTokenCaption(Object tokenId, String caption) {
         cb.setItemCaption(tokenId, caption);
     }
 
+    /**
+     * @see ComboBox#setItemCaptionMode(int)
+     * @param mode
+     */
     public void setTokenCaptionMode(int mode) {
         cb.setItemCaptionMode(mode);
     }
 
+    /**
+     * @see ComboBox#setItemCaptionPropertyId(Object)
+     * @param propertyId
+     */
     public void setTokenCaptionPropertyId(Object propertyId) {
         cb.setItemCaptionPropertyId(propertyId);
     }
 
+    /**
+     * @see ComboBox#setItemIcon(Object, Resource)
+     * @param tokenId
+     * @param icon
+     */
     public void setTokenIcon(Object tokenId, Resource icon) {
         cb.setItemIcon(tokenId, icon);
     }
 
+    /**
+     * @see ComboBox#setItemIconPropertyId(Object)
+     * @param propertyId
+     */
     public void setTokenIconPropertyId(Object propertyId) {
         cb.setItemIconPropertyId(propertyId);
     }
 
+    /**
+     * @see ComboBox#setNewItemHandler(NewItemHandler)
+     * @see #setNewTokensAllowed(boolean)
+     * @param newItemHandler
+     */
     public void setNewTokenHandler(NewItemHandler newItemHandler) {
         cb.setNewItemHandler(newItemHandler);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.vaadin.tokenfield.CustomField#setTabIndex(int)
+     */
     public void setTabIndex(int tabIndex) {
         cb.setTabIndex(tabIndex);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.vaadin.tokenfield.CustomField#getType()
+     */
     @Override
     public Class<?> getType() {
         return Set.class;
