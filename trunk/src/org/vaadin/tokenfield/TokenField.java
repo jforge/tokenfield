@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import com.vaadin.data.Container;
+import com.vaadin.data.Property;
 import com.vaadin.terminal.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
@@ -14,8 +15,6 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.AbstractSelect.NewItemHandler;
 import com.vaadin.ui.Button.ClickEvent;
-
-// TODO remove the addNewTokenHandler in favor of a call to onTokenInput(Object tokenId, boolean isNew)
 
 /**
  * 
@@ -33,11 +32,14 @@ import com.vaadin.ui.Button.ClickEvent;
  * Can be customized in several ways by overriding certain methods. When the
  * user select or enters a new token, the following happens:
  * <ul>
- * <li>If the token is new (not in the container) and new tokens are allowed (
- * {@link #setNewTokensAllowed(boolean) }), the newItemHander is called. TODO</li>
+ * <li>If the token is new (not in the container) and new tokens are not allowed
+ * ( {@link #setNewTokensAllowed(boolean) }), nothing happens - otherwise</li>
  * <li>{@link #onTokenInput(Object)} is called, by default it just calls</li>
  * <li>{@link #addToken(Object)} which will eventually cause a call to</li>
  * <li>{@link #configureTokenButton(Object, Button)}</li>
+ * <li>finally, if the token is new, it's added to the container if
+ * {@link #setRememberNewTokens(boolean)} is on - this means previous method
+ * calls can know whether or not the token is new by examining the container.</li>
  * </ul>
  * Custom functionality when adding and removing tokens, such as showing a
  * notification for duplicates or confirming removal, is done by overriding
@@ -50,16 +52,6 @@ import com.vaadin.ui.Button.ClickEvent;
  * The content of the input (ComboBox) can be bound to a Container datasource,
  * and filtering can be used. Note that the TokenField can select values that
  * are not present in the ComboBox.<br/>
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
  * 
  * 
  * 
@@ -122,6 +114,8 @@ public class TokenField extends CustomField implements Container.Editor {
      * Maps the tokenId (itemId) to the token button
      */
     protected LinkedHashMap<Object, Button> buttons = new LinkedHashMap<Object, Button>();
+
+    protected boolean rememberNewTokens = true;
 
     /**
      * Create a new TokenField with a caption and a {@link InsertPosition}.
@@ -230,6 +224,39 @@ public class TokenField extends CustomField implements Container.Editor {
                 cb.setValue(null);
                 cb.focus();
             }
+        });
+
+        cb.setNewItemHandler(new NewItemHandler() {
+
+            private static final long serialVersionUID = 1L;
+
+            // This is essentially what the ComboBox.DefaultNewItemHandler does,
+            // but we'll first delegate adding token button, then add to
+            // container.
+            public void addNewItem(String tokenId) {
+                if (isReadOnly()) {
+                    throw new Property.ReadOnlyException();
+                }
+                onTokenInput(tokenId);
+                if (rememberNewTokens) {
+                    if (cb.addItem(getTokenCaption(tokenId)) != null) {
+                        // Sets the caption property, if used
+                        if (getTokenCaptionPropertyId() != null) {
+                            try {
+                                cb.getContainerProperty(tokenId,
+                                        getTokenCaptionPropertyId()).setValue(
+                                        tokenId);
+                            } catch (final Property.ConversionException ignored) {
+                                /*
+                                 * The conversion exception is safely ignored,
+                                 * the caption is just missing
+                                 */
+                            }
+                        }
+                    }
+                }
+            }
+
         });
 
         layout.addComponent(cb);
@@ -487,24 +514,48 @@ public class TokenField extends CustomField implements Container.Editor {
 
     /**
      * Sets whether or not tokens entered by the user that not present in the
-     * container will be automatically added to the container.
+     * container are allowed. When true, the token is added, and if
+     * {@link #setRememberNewTokens(boolean)} is true, the new token will be
+     * added to the container as well.
      * 
      * @see #setNewTokenHandler(NewItemHandler)
      * @param allowNewTokens
-     *            true to automatically add tokens to the container
+     *            true to allow tokens that are not in the container
      */
     public void setNewTokensAllowed(boolean allowNewTokens) {
         cb.setNewItemsAllowed(allowNewTokens);
     }
 
     /**
-     * Checks whether od not new tokens are automatically added to the container
+     * Checks whether or not new tokens are allowed
      * 
      * @see #setNewTokensAllowed(boolean)
      * @return
      */
     public boolean isNewTokensAllowed() {
         return cb.isNewItemsAllowed();
+    }
+
+    /**
+     * If true, new tokens entered by the user are automatically added to the
+     * container.
+     * 
+     * @return true if tokens are automatically added
+     */
+    public boolean isRememberNewTokens() {
+        return rememberNewTokens;
+    }
+
+    /**
+     * Provided new tokens are allowed ({@link #setNewTokensAllowed(boolean)}),
+     * this sets whether or not new tokens entered by the user are automatically
+     * added to the container.
+     * 
+     * @param rememberNewTokens
+     *            true to add new tokens automatically
+     */
+    public void setRememberNewTokens(boolean rememberNewTokens) {
+        this.rememberNewTokens = rememberNewTokens;
     }
 
     /**
@@ -609,15 +660,6 @@ public class TokenField extends CustomField implements Container.Editor {
         return cb.getItemIds();
     }
 
-    /**
-     * @see ComboBox#getNewItemHandler()
-     * @return the current new item handler
-     */
-
-    public NewItemHandler getNewTokenHandler() {
-        return cb.getNewItemHandler();
-    }
-
     /*
      * (non-Javadoc)
      * 
@@ -681,15 +723,6 @@ public class TokenField extends CustomField implements Container.Editor {
      */
     public void setTokenIconPropertyId(Object propertyId) {
         cb.setItemIconPropertyId(propertyId);
-    }
-
-    /**
-     * @see ComboBox#setNewItemHandler(NewItemHandler)
-     * @see #setNewTokensAllowed(boolean)
-     * @param newItemHandler
-     */
-    public void setNewTokenHandler(NewItemHandler newItemHandler) {
-        cb.setNewItemHandler(newItemHandler);
     }
 
     /*
