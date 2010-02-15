@@ -167,6 +167,38 @@ public class TokenfieldDemo extends Application {
 
             {
                 /*
+                 * User-added tokens are custom styled, not added to container.
+                 */
+
+                Panel p = new Panel("Customize new tokens");
+                addComponent(p);
+
+                // generate container
+                Container tokens = generateTestContainer();
+
+                // we want this to be vertical
+                VerticalLayout lo = new VerticalLayout();
+                lo.setSpacing(true);
+
+                final TokenField f = new TokenField(lo) {
+                    protected void configureTokenButton(Object tokenId,
+                            Button button) {
+                        // otherwise default, but change caption
+                        super.configureTokenButton(tokenId, button);
+                        if (!cb.containsId(tokenId)) {
+                            button.setCaption("(New) " + button.getCaption());
+                        }
+                    }
+                };
+                f.setContainerDataSource(tokens); // datasource
+                f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS); // suggest
+                f.setRememberNewTokens(false); // but don't add new suggestions
+
+                p.addComponent(f);
+            }
+
+            {
+                /*
                  * Here, onTokenInput() and onTokenClicked() is customized.
                  */
                 Panel p = new Panel("Add / remove actions");
