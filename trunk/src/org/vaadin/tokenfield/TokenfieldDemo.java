@@ -187,12 +187,22 @@ public class TokenfieldDemo extends Application {
                     protected void onTokenClicked(final Object tokenId) {
                         final TokenField field = this;
                         final Window w = new Window("Are you sure?");
+                        w.setStyleName("light");
+                        w.setResizable(false);
                         w.center();
                         w.setModal(true);
-                        HorizontalLayout l = new HorizontalLayout();
-                        l.setSpacing(true);
-                        l.setMargin(true);
-                        w.setContent(l);
+                        getWindow().addWindow(w);
+
+                        Button remove = new Button("Remove "
+                                + field.getTokenCaption(tokenId),
+                                new Button.ClickListener() {
+                                    public void buttonClick(ClickEvent event) {
+                                        field.removeToken(tokenId);
+                                        DemoWindow.this.removeWindow(w);
+                                    }
+                                });
+                        w.addComponent(remove);
+
                         Button cancel = new Button("Cancel",
                                 new Button.ClickListener() {
                                     public void buttonClick(ClickEvent event) {
@@ -201,15 +211,7 @@ public class TokenfieldDemo extends Application {
                                 });
                         cancel.setStyleName(Button.STYLE_LINK);
                         w.addComponent(cancel);
-                        Button remove = new Button("Remove",
-                                new Button.ClickListener() {
-                                    public void buttonClick(ClickEvent event) {
-                                        field.removeToken(tokenId);
-                                        DemoWindow.this.removeWindow(w);
-                                    }
-                                });
-                        w.addComponent(remove);
-                        getWindow().addWindow(w);
+
                     }
                 };
                 f.setNewTokensAllowed(true);
