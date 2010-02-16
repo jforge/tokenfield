@@ -46,6 +46,42 @@ public class TokenfieldDemo extends Application {
                  * empty to begin with, the user can enter new tokens.
                  */
 
+                Panel p = new Panel("Sizes");
+                addComponent(p);
+
+                TokenField f = new TokenField("100% n");
+                f.setWidth("100%");
+                p.addComponent(f);
+
+                f = new TokenField("100% 100%");
+                f.setWidth("100%");
+                f.setInputWidth("100%");
+                p.addComponent(f);
+
+                f = new TokenField("CSS 100% n");
+                f.setLayout(new CssLayout());
+                f.setWidth("100%");
+                p.addComponent(f);
+
+                f = new TokenField("CSS 100% n");
+                f.setLayout(new CssLayout());
+                f.setWidth("100%");
+                f.setInputWidth("100%");
+                p.addComponent(f);
+
+                f = new TokenField("CSS n 100%");
+                f.setLayout(new CssLayout());
+                f.setInputWidth("100%");
+                p.addComponent(f);
+
+            }
+
+            {
+                /*
+                 * This is the most basic use case using all defaults; it's
+                 * empty to begin with, the user can enter new tokens.
+                 */
+
                 Panel p = new Panel("Basic");
                 addComponent(p);
 
@@ -187,6 +223,7 @@ public class TokenfieldDemo extends Application {
                         super.configureTokenButton(tokenId, button);
                         if (!cb.containsId(tokenId)) {
                             button.setCaption("(New) " + button.getCaption());
+                            button.addStyleName("emphasize");
                         }
                     }
                 };
