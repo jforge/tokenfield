@@ -57,6 +57,76 @@ import com.vaadin.ui.Button.ClickEvent;
  * 
  * 
  * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
  * Also note that if you use {@link #setTokenCaptionPropertyId(Object)} (to use
  * a specific property as token caption) AND allow new tokens to be input (
  * {@link #setNewTokensAllowed(boolean)}, you should probably use a custom
@@ -204,9 +274,6 @@ public class TokenField extends CustomField implements Container.Editor {
      */
     public TokenField(Layout lo) {
         setStyleName("tokenfield");
-        layout = lo;
-        setCompositionRoot(layout);
-        setWidth(null);
 
         cb.setImmediate(true);
         cb.setNewItemsAllowed(true);
@@ -259,7 +326,7 @@ public class TokenField extends CustomField implements Container.Editor {
 
         });
 
-        layout.addComponent(cb);
+        setLayout(lo);
 
     }
 
@@ -276,6 +343,9 @@ public class TokenField extends CustomField implements Container.Editor {
         }
         if (!isReadOnly() && insertPosition == InsertPosition.BEFORE) {
             layout.addComponent(cb);
+        }
+        if (layout instanceof HorizontalLayout) {
+            ((HorizontalLayout) layout).setExpandRatio(cb, 1.0f);
         }
     }
 
@@ -344,6 +414,9 @@ public class TokenField extends CustomField implements Container.Editor {
             layout.addComponent(cb);
         } else {
             layout.addComponent(b);
+        }
+        if (layout instanceof HorizontalLayout) {
+            ((HorizontalLayout) layout).setExpandRatio(cb, 1.0f);
         }
 
     }
@@ -440,7 +513,9 @@ public class TokenField extends CustomField implements Container.Editor {
      *            the layout to use
      */
     public void setLayout(Layout newLayout) {
-        layout.removeAllComponents();
+        if (layout != null) {
+            layout.removeAllComponents();
+        }
         layout = newLayout;
         setCompositionRoot(layout);
         rebuild();
@@ -667,6 +742,76 @@ public class TokenField extends CustomField implements Container.Editor {
      */
     public int getTabIndex() {
         return cb.getTabIndex();
+    }
+
+    /*-
+    @Override
+    public void setHeight(String height) {
+        this.layout.setHeight(height);
+        super.setHeight(height);
+    }
+
+    @Override
+    public void setWidth(String width) {
+        this.layout.setWidth(width);
+        super.setWidth(width);
+    }
+    -*/
+
+    @Override
+    public void setHeight(float height, int unit) {
+        if (this.layout != null) {
+            this.layout.setHeight(height, unit);
+        }
+        super.setHeight(height, unit);
+    }
+
+    @Override
+    public void setWidth(float width, int unit) {
+        if (this.layout != null) {
+            this.layout.setWidth(width, unit);
+        }
+        super.setWidth(width, unit);
+    }
+
+    @Override
+    public void setSizeFull() {
+        if (this.layout != null) {
+            this.layout.setSizeFull();
+        }
+        super.setSizeFull();
+    }
+
+    @Override
+    public void setSizeUndefined() {
+        if (this.layout != null) {
+            this.layout.setSizeUndefined();
+        }
+        super.setSizeUndefined();
+    }
+
+    public void setInputHeight(String height) {
+        this.cb.setHeight(height);
+    }
+
+    public void setInputWidth(String width) {
+        this.cb.setWidth(width);
+    }
+
+    public void setInputHeight(float height, int unit) {
+        this.cb.setHeight(height, unit);
+    }
+
+    public void setInputWidth(float width, int unit) {
+        this.cb.setWidth(width, unit);
+    }
+
+    public void setInputSizeFull() {
+        this.cb.setSizeFull();
+    }
+
+    public void setInputSizeUndefined() {
+        this.cb.setSizeUndefined();
     }
 
     /**
