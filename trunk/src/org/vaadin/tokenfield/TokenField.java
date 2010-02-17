@@ -52,81 +52,6 @@ import com.vaadin.ui.Button.ClickEvent;
  * The content of the input (ComboBox) can be bound to a Container datasource,
  * and filtering can be used. Note that the TokenField can select values that
  * are not present in the ComboBox.<br/>
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
  * Also note that if you use {@link #setTokenCaptionPropertyId(Object)} (to use
  * a specific property as token caption) AND allow new tokens to be input (
  * {@link #setNewTokensAllowed(boolean)}, you should probably use a custom
@@ -165,6 +90,11 @@ public class TokenField extends CustomField implements Container.Editor {
         BEFORE
     }
 
+    public static final String STYLE_TOKENFIELD = "tokenfield";
+    public static final String STYLE_TOKENTEXTFIELD = "tokentextfield";
+    
+    public static final String STYLE_BUTTON_EMPHAZISED = "emphasize";
+    
     /**
      * The layout currently in use
      */
@@ -273,7 +203,7 @@ public class TokenField extends CustomField implements Container.Editor {
      *            the desired layout
      */
     public TokenField(Layout lo) {
-        setStyleName("tokenfield");
+        setStyleName(STYLE_TOKENFIELD + " " + STYLE_TOKENTEXTFIELD);
 
         cb.setImmediate(true);
         cb.setNewItemsAllowed(true);
