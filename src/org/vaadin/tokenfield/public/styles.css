@@ -13,6 +13,13 @@
 	text-decoration: none;
 }
 
+.tokenfield .v-csslayout div {
+	float: left;
+}
+.tokenfield .v-csslayout .v-button-link {
+	margin: 1px;
+}
+
 /* textfield lookalike */
 
 .tokentextfield .v-filterselect-button, 
