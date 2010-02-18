@@ -11,6 +11,7 @@ import com.vaadin.data.Property;
 import com.vaadin.terminal.Resource;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.CssLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.AbstractSelect.NewItemHandler;
@@ -24,7 +25,7 @@ import com.vaadin.ui.Button.ClickEvent;
  * selections are not allowed.
  * 
  * <p>
- * TokenField defaults to using HorizontalLayout, but virtually any Layout can
+ * TokenField defaults to using CssLayout, but virtually any Layout can
  * be used.
  * </p>
  * 
@@ -147,9 +148,7 @@ public class TokenField extends CustomField implements Container.Editor {
      * 
      */
     public TokenField() {
-        this(new HorizontalLayout());
-        ((HorizontalLayout) layout).setSpacing(true);
-        ((HorizontalLayout) layout).setWidth(null);
+        this(new CssLayout());
     }
 
     /**
