@@ -188,7 +188,7 @@ public class TokenfieldDemo extends Application {
                  */
 
                 Panel p = new Panel("Layout and InsertPosition");
-                ((VerticalLayout)p.getContent()).setSpacing(true);
+                ((VerticalLayout) p.getContent()).setSpacing(true);
                 addComponent(p);
 
                 HorizontalLayout controls = new HorizontalLayout();
@@ -273,9 +273,6 @@ public class TokenfieldDemo extends Application {
                 Panel p = new Panel("Data binding and buffering");
                 addComponent(p);
 
-                // generate container
-                Container tokens = generateTestContainer();
-
                 // just for layout; ListSelect left, TokenField right
                 HorizontalLayout lo = new HorizontalLayout();
                 lo.setWidth("100%");
@@ -284,16 +281,24 @@ public class TokenfieldDemo extends Application {
                 p.setContent(lo);
 
                 // A regular list select
-                ListSelect list = new ListSelect();
+                ListSelect list = new ListSelect(
+                        "ListSelect, datasource for TokenField");
+                list.setWidth("220px");
                 lo.addComponent(list);
                 list.setImmediate(true);
                 list.setMultiSelect(true);
-                list.setContainerDataSource(tokens);
-
+                // Add a few items
+                list.addItem("One");
+                list.addItem("Two");
+                list.addItem("Three");
+                list.addItem("Four");
+                list.addItem("Five");
+                
                 // TokenField bound to the ListSelect above, CssLayout so that
                 // it wraps nicely.
-                final TokenField f = new TokenField(new CssLayout());
-                f.setContainerDataSource(tokens);
+                final TokenField f = new TokenField(
+                        "TokenField, writeTrough=false, click << to commit");
+                f.setContainerDataSource(list.getContainerDataSource());
                 f.setWriteThrough(false);
                 // f.setNewTokensAllowed(false);
                 f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS);
