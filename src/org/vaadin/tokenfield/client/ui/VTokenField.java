@@ -1,7 +1,7 @@
 package org.vaadin.tokenfield.client.ui;
 
 import com.google.gwt.event.dom.client.KeyCodes;
-import com.google.gwt.event.dom.client.KeyUpEvent;
+import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.user.client.ui.TextBox;
 import com.vaadin.terminal.gwt.client.ApplicationConnection;
 import com.vaadin.terminal.gwt.client.UIDL;
@@ -31,7 +31,7 @@ public class VTokenField extends VFilterSelect {
         super();
     }
 
-    public void onKeyUp(KeyUpEvent event) {
+    public void onKeyDown(KeyDownEvent event) {
         if (!enabled || readonly) {
             return;
         }
@@ -47,7 +47,7 @@ public class VTokenField extends VFilterSelect {
             }
         }
 
-        super.onKeyUp(event);
+        super.onKeyDown(event);
 
     }
 
