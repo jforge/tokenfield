@@ -5,8 +5,7 @@
 	-moz-border-radius: 2px;
 	-webkit-border-radius: 2px;
 	height: 23px;
-	line-height: 23px;
-	padding: 0 7px;
+	padding: 4px 7px;
 }
 .tokenfield .v-button-link:focus {
 	background-color: #00B4F0;
@@ -14,8 +13,7 @@
 	-moz-border-radius: 2px;
 	-webkit-border-radius: 2px;
 	height: 23px;
-	line-height: 23px;
-	padding: 0 7px;
+	padding: 4px 7px;
 }
 .tokenfield .v-button-emphasize, .tokenfield .v-button-emphasize:focus {
 	background-color: #EC0C6D;
