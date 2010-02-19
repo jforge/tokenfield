@@ -116,14 +116,25 @@ public class TokenField extends CustomField implements Container.Editor {
     protected Layout layout;
 
     /**
-     * The ComboBox used for input - should probably not be touched.
-     */
-    protected ComboBox cb = new ComboBox();
-
-    /**
      * Current insert position
      */
     protected InsertPosition insertPosition = InsertPosition.BEFORE;
+
+    /**
+     * The ComboBox used for input - should probably not be touched.
+     */
+    protected TokenComboBox cb = new TokenComboBox(insertPosition) {
+
+        private static final long serialVersionUID = -5550767105896319355L;
+
+        protected void onDelete() {
+            if (!buttons.isEmpty()) {
+                Object[] keys = buttons.keySet().toArray();
+                onTokenClicked(keys[keys.length-1]);
+                cb.focus();
+            }
+        }    
+    };
 
     /**
      * Maps the tokenId (itemId) to the token button
@@ -506,6 +517,7 @@ public class TokenField extends CustomField implements Container.Editor {
     public void setTokenInsertPosition(InsertPosition insertPosition) {
         if (this.insertPosition != insertPosition) {
             this.insertPosition = insertPosition;
+            cb.setTokenInsertPosition(insertPosition);
             rebuild();
         }
     }
