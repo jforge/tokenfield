@@ -43,8 +43,9 @@ import com.vaadin.ui.Button.ClickEvent;
  * </ul>
  * Custom functionality when adding and removing tokens, such as showing a
  * notification for duplicates or confirming removal, is done by overriding
- * {@link #onTokenInpu(Object)} and {@link #onTokenClicked(Object)}
- * respectively.<br/>
+ * {@link #onTokenInput(Object)} and {@link #onTokenClick(Object)} respectively.
+ * In much the same way, {@link #onTokenDelete()} is called when the user
+ * presses delete or backspace when the input is empty, and can be customized.<br/>
  * The token buttons can be styled customized by overriding
  * {@link #configureTokenButton(TokenField, Object, Button).
  * </p>
@@ -52,21 +53,6 @@ import com.vaadin.ui.Button.ClickEvent;
  * The content of the input (ComboBox) can be bound to a Container datasource,
  * and filtering can be used. Note that the TokenField can select values that
  * are not present in the ComboBox.<br/>
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
  * Also note that if you use {@link #setTokenCaptionPropertyId(Object)} (to use
  * a specific property as token caption) AND allow new tokens to be input (
  * {@link #setNewTokensAllowed(boolean)}, you should probably use a custom
@@ -130,10 +116,10 @@ public class TokenField extends CustomField implements Container.Editor {
         protected void onDelete() {
             if (!buttons.isEmpty()) {
                 Object[] keys = buttons.keySet().toArray();
-                onTokenClicked(keys[keys.length-1]);
+                onTokenDelete(keys[keys.length - 1]);
                 cb.focus();
             }
-        }    
+        }
     };
 
     /**
@@ -362,8 +348,20 @@ public class TokenField extends CustomField implements Container.Editor {
      * @param tokenId
      *            the id of the token that was clicked
      */
-    protected void onTokenClicked(Object tokenId) {
+    protected void onTokenClick(Object tokenId) {
         removeToken(tokenId);
+    }
+
+    /**
+     * Called with the last added token when the delete or backspace -key
+     * (depending in insert position) is pressed in an empty input. The default
+     * is to call {@link #onTokenClick(Object)} with the last added token, i.e
+     * remove last. The behavior can be customized, e.g present a confirmation
+     * dialog.
+     * 
+     */
+    protected void onTokenDelete(Object tokenId) {
+        onTokenClick(tokenId);
     }
 
     private void addTokenButton(final Object val) {
@@ -373,7 +371,7 @@ public class TokenField extends CustomField implements Container.Editor {
             private static final long serialVersionUID = -1943432188848347317L;
 
             public void buttonClick(ClickEvent event) {
-                onTokenClicked(val);
+                onTokenClick(val);
             }
         });
         buttons.put(val, b);

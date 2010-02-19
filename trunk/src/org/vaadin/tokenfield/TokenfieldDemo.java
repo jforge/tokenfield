@@ -57,6 +57,34 @@ public class TokenfieldDemo extends Application {
 
                 TokenField f = new TokenField("Add tags");
                 p.addComponent(f);
+
+            }
+
+            {
+                /*
+                 * Interpretes "," as token separator
+                 */
+
+                Panel p = new Panel("Comma separated");
+                addComponent(p);
+
+                TokenField f = new TokenField() {
+
+                    @Override
+                    protected void onTokenInput(Object tokenId) {
+                        String[] tokens = ((String) tokenId).split(",");
+                        for (int i = 0; i < tokens.length; i++) {
+                            String token = tokens[i].trim();
+                            if (token.length() > 0) {
+                                super.onTokenInput(token);
+                            }
+                        }
+                    }
+
+                };
+                f.setInputPrompt("tag, another, yetanother");
+                p.addComponent(f);
+
             }
 
             {
@@ -85,6 +113,7 @@ public class TokenfieldDemo extends Application {
 
                     private static final long serialVersionUID = 5530375996928514871L;
 
+                    // dialog if not in 'address book', otherwise just add
                     protected void onTokenInput(Object tokenId) {
                         Set<Object> set = (Set<Object>) getValue();
                         Contact c = new Contact("", tokenId.toString());
@@ -106,11 +135,18 @@ public class TokenfieldDemo extends Application {
                         }
                     }
 
-                    protected void onTokenClicked(final Object tokenId) {
+                    // show confirm dialog
+                    protected void onTokenClick(final Object tokenId) {
                         getWindow().addWindow(
                                 new RemoveWindow((Contact) tokenId, this));
                     }
 
+                    // just delete, no confirm
+                    protected void onTokenDelete(Object tokenId) {
+                        this.removeToken(tokenId);
+                    }
+
+                    // custom caption + style if not in 'address book'
                     protected void configureTokenButton(Object tokenId,
                             Button button) {
                         super.configureTokenButton(tokenId, button);
@@ -129,7 +165,7 @@ public class TokenfieldDemo extends Application {
                 };
                 p.addComponent(f);
                 // This would turn on the "fake tekstfield" look:
-                // f.setStyleName(TokenField.STYLE_TOKENFIELD); 
+                // f.setStyleName(TokenField.STYLE_TOKENFIELD);
                 f.setWidth("100%");
                 f.setInputWidth("100%");
                 f.setContainerDataSource(tokens); // 'address book'
@@ -141,8 +177,8 @@ public class TokenfieldDemo extends Application {
                 Iterator it = f.getTokenIds().iterator();
                 f.addToken(it.next());
                 f.addToken(it.next());
-                f.addToken(new Contact("","thatnewguy@example.com"));
-                
+                f.addToken(new Contact("", "thatnewguy@example.com"));
+
             }
 
             {
@@ -163,7 +199,7 @@ public class TokenfieldDemo extends Application {
                 // w/ datasource, no configurator
                 final TokenField f = new TokenField();
                 f.setContainerDataSource(tokens);
-                //f.setNewTokensAllowed(false);
+                // f.setNewTokensAllowed(false);
                 f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS);
                 f.setInputPrompt("firstname.lastname@example.com");
                 p.addComponent(f);
@@ -232,7 +268,6 @@ public class TokenfieldDemo extends Application {
 
             }
 
-            
             {
                 Panel p = new Panel("Data binding and buffering");
                 addComponent(p);
@@ -261,8 +296,8 @@ public class TokenfieldDemo extends Application {
                 // f.setNewTokensAllowed(false);
                 f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS);
                 f.setPropertyDataSource(list);
-                
-                lo.addComponent(new Button("<<", new Button.ClickListener() {                    
+
+                lo.addComponent(new Button("<<", new Button.ClickListener() {
 
                     private static final long serialVersionUID = 1375470313147460732L;
 
@@ -270,10 +305,10 @@ public class TokenfieldDemo extends Application {
                         f.commit();
                     }
                 }));
-                
+
                 lo.addComponent(f);
                 lo.setExpandRatio(f, 1.0f);
-                
+
             }
         }
     }
