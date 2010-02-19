@@ -98,7 +98,7 @@ public class TokenfieldDemo extends Application {
                  * differently).
                  */
 
-                Panel p = new Panel("Full featured");
+                Panel p = new Panel("Full featured example");
                 p.getContent().setStyleName("black");
                 addComponent(p);
 
@@ -165,7 +165,7 @@ public class TokenfieldDemo extends Application {
                 };
                 p.addComponent(f);
                 // This would turn on the "fake tekstfield" look:
-                // f.setStyleName(TokenField.STYLE_TOKENFIELD);
+                f.setStyleName(TokenField.STYLE_TOKENFIELD);
                 f.setWidth("100%");
                 f.setInputWidth("100%");
                 f.setContainerDataSource(tokens); // 'address book'
@@ -188,6 +188,7 @@ public class TokenfieldDemo extends Application {
                  */
 
                 Panel p = new Panel("Layout and InsertPosition");
+                ((VerticalLayout)p.getContent()).setSpacing(true);
                 addComponent(p);
 
                 HorizontalLayout controls = new HorizontalLayout();
@@ -279,6 +280,7 @@ public class TokenfieldDemo extends Application {
                 HorizontalLayout lo = new HorizontalLayout();
                 lo.setWidth("100%");
                 lo.setSpacing(true);
+                lo.setMargin(true);
                 p.setContent(lo);
 
                 // A regular list select

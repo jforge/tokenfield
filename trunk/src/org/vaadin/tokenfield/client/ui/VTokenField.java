@@ -21,7 +21,6 @@ public class VTokenField extends VFilterSelect {
 
     protected boolean readonly = false;
     protected boolean enabled = false;
-    protected boolean immediate = false;
     protected boolean after = false;
 
     /**
@@ -42,7 +41,7 @@ public class VTokenField extends VFilterSelect {
                     && "".equals(((TextBox) event.getSource()).getText())) {
                 if ((kc == KeyCodes.KEY_BACKSPACE && !after)
                         || (kc == KeyCodes.KEY_DELETE && after)) {
-                    client.updateVariable(paintableId, "del", true, immediate);
+                    client.updateVariable(paintableId, "del", true, true);
                     return;
                 }
             }
@@ -58,7 +57,6 @@ public class VTokenField extends VFilterSelect {
     public void updateFromUIDL(UIDL uidl, ApplicationConnection client) {
         readonly = uidl.hasAttribute("readonly");
         enabled = !uidl.hasAttribute("disabled");
-        immediate = uidl.hasAttribute("immediate");
         after = uidl.hasAttribute("after");
         paintableId = uidl.getId();
         this.client = client;
