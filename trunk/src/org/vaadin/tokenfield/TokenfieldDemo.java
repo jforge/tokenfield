@@ -1,6 +1,7 @@
 package org.vaadin.tokenfield;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 
@@ -30,12 +31,17 @@ import com.vaadin.ui.Button.ClickEvent;
 
 public class TokenfieldDemo extends Application {
 
+    private static final long serialVersionUID = -5482533598574403330L;
+
     @Override
     public void init() {
         setMainWindow(new DemoWindow());
     }
 
     class DemoWindow extends Window {
+
+        private static final long serialVersionUID = -6173017768248991149L;
+
         DemoWindow() {
             // Just add some spacing so it looks nicer
             ((VerticalLayout) getContent()).setSpacing(true);
@@ -76,6 +82,9 @@ public class TokenfieldDemo extends Application {
                 lo.setSpacing(true);
 
                 final TokenField f = new TokenField(lo) {
+
+                    private static final long serialVersionUID = 5530375996928514871L;
+
                     protected void onTokenInput(Object tokenId) {
                         Set<Object> set = (Set<Object>) getValue();
                         Contact c = new Contact("", tokenId.toString());
@@ -118,7 +127,9 @@ public class TokenfieldDemo extends Application {
                         }
                     }
                 };
-                f.setStyleName(TokenField.STYLE_TOKENFIELD); // no fake textfield look
+                p.addComponent(f);
+                // This would turn on the "fake tekstfield" look:
+                // f.setStyleName(TokenField.STYLE_TOKENFIELD); 
                 f.setWidth("100%");
                 f.setInputWidth("100%");
                 f.setContainerDataSource(tokens); // 'address book'
@@ -126,7 +137,12 @@ public class TokenfieldDemo extends Application {
                 f.setTokenCaptionPropertyId("name"); // use name in input
                 f.setInputPrompt("Enter contact name or new email address");
                 f.setRememberNewTokens(false); // we'll do this via the dialog
-                p.addComponent(f);
+                // Pre-add a few:
+                Iterator it = f.getTokenIds().iterator();
+                f.addToken(it.next());
+                f.addToken(it.next());
+                f.addToken(new Contact("","thatnewguy@example.com"));
+                
             }
 
             {
@@ -147,7 +163,7 @@ public class TokenfieldDemo extends Application {
                 // w/ datasource, no configurator
                 final TokenField f = new TokenField();
                 f.setContainerDataSource(tokens);
-                f.setNewTokensAllowed(false);
+                //f.setNewTokensAllowed(false);
                 f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS);
                 f.setInputPrompt("firstname.lastname@example.com");
                 p.addComponent(f);
@@ -161,6 +177,9 @@ public class TokenfieldDemo extends Application {
                 lo.setNullSelectionAllowed(false);
                 lo.setValue(f.getLayout().getClass());
                 lo.addListener(new ValueChangeListener() {
+
+                    private static final long serialVersionUID = -5644191531547324609L;
+
                     public void valueChange(ValueChangeEvent event) {
                         try {
                             Layout l = (Layout) ((Class) event.getProperty()
@@ -186,6 +205,9 @@ public class TokenfieldDemo extends Application {
                 ip.setNullSelectionAllowed(false);
                 ip.setValue(f.getTokenInsertPosition());
                 ip.addListener(new ValueChangeListener() {
+
+                    private static final long serialVersionUID = 518234140117517538L;
+
                     public void valueChange(ValueChangeEvent event) {
                         f
                                 .setTokenInsertPosition((InsertPosition) ip
@@ -198,6 +220,9 @@ public class TokenfieldDemo extends Application {
                 cb.setImmediate(true);
                 cb.setValue(f.isReadOnly());
                 cb.addListener(new ValueChangeListener() {
+
+                    private static final long serialVersionUID = 8812909594903040042L;
+
                     public void valueChange(ValueChangeEvent event) {
                         f.setReadOnly(cb.booleanValue());
                     }
@@ -207,8 +232,9 @@ public class TokenfieldDemo extends Application {
 
             }
 
+            
             {
-                Panel p = new Panel("Data binding (property data source)");
+                Panel p = new Panel("Data binding and buffering");
                 addComponent(p);
 
                 // generate container
@@ -231,11 +257,23 @@ public class TokenfieldDemo extends Application {
                 // it wraps nicely.
                 final TokenField f = new TokenField(new CssLayout());
                 f.setContainerDataSource(tokens);
+                f.setWriteThrough(false);
                 // f.setNewTokensAllowed(false);
                 f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS);
                 f.setPropertyDataSource(list);
+                
+                lo.addComponent(new Button("<<", new Button.ClickListener() {                    
+
+                    private static final long serialVersionUID = 1375470313147460732L;
+
+                    public void buttonClick(ClickEvent event) {
+                        f.commit();
+                    }
+                }));
+                
                 lo.addComponent(f);
                 lo.setExpandRatio(f, 1.0f);
+                
             }
         }
     }
@@ -244,6 +282,9 @@ public class TokenfieldDemo extends Application {
      * This is the window used to confirm removal
      */
     class RemoveWindow extends Window {
+
+        private static final long serialVersionUID = -7140907025722511460L;
+
         RemoveWindow(final Contact c, final TokenField f) {
             super("Remove " + c.getName() + "?");
 
@@ -261,6 +302,9 @@ public class TokenfieldDemo extends Application {
             hz.setWidth("100%");
 
             Button cancel = new Button("Cancel", new Button.ClickListener() {
+
+                private static final long serialVersionUID = 7675170261217815011L;
+
                 public void buttonClick(ClickEvent event) {
                     f.getWindow().removeWindow(getWindow());
                 }
@@ -269,6 +313,9 @@ public class TokenfieldDemo extends Application {
             hz.setComponentAlignment(cancel, Alignment.MIDDLE_LEFT);
 
             Button remove = new Button("Remove", new Button.ClickListener() {
+
+                private static final long serialVersionUID = 5004855711589989635L;
+
                 public void buttonClick(ClickEvent event) {
                     f.removeToken(c);
                     f.getWindow().removeWindow(getWindow());
@@ -281,8 +328,8 @@ public class TokenfieldDemo extends Application {
     }
 
     /**
-     * This is the window used to add new contacts to the 'address book'.
-     * It does not do proper validation - you can add weird stuff.
+     * This is the window used to add new contacts to the 'address book'. It
+     * does not do proper validation - you can add weird stuff.
      */
     class EditContactWindow extends Window {
         private Contact contact;
@@ -302,7 +349,7 @@ public class TokenfieldDemo extends Application {
 
             // Just bind a Form to the Contact -pojo via BeanItem
             Form form = new Form();
-            form.setItemDataSource(new BeanItem(contact));
+            form.setItemDataSource(new BeanItem<Contact>(contact));
             form.setImmediate(true);
             addComponent(form);
 
@@ -313,8 +360,12 @@ public class TokenfieldDemo extends Application {
             hz.setWidth("100%");
 
             Button dont = new Button("Don't add", new Button.ClickListener() {
+
+                private static final long serialVersionUID = -1198191849568844582L;
+
                 public void buttonClick(ClickEvent event) {
-                    if (contact.getEmail()==null||contact.getEmail().length()<1) {
+                    if (contact.getEmail() == null
+                            || contact.getEmail().length() < 1) {
                         contact.setEmail(contact.getName());
                     }
                     f.addToken(contact);
@@ -326,8 +377,12 @@ public class TokenfieldDemo extends Application {
 
             Button add = new Button("Add to contacts",
                     new Button.ClickListener() {
+
+                        private static final long serialVersionUID = 1L;
+
                         public void buttonClick(ClickEvent event) {
-                            if (contact.getEmail()==null||contact.getEmail().length()<1) {
+                            if (contact.getEmail() == null
+                                    || contact.getEmail().length() < 1) {
                                 contact.setEmail(contact.getName());
                             }
                             ((BeanItemContainer) f.getContainerDataSource())

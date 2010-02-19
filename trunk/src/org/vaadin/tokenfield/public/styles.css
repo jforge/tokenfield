@@ -5,7 +5,14 @@
 	-webkit-border-radius: 2px;
 	padding: 3px 7px;
 }
-.tokenfield .v-button-emphasize {
+.tokenfield .v-button-link:focus {
+	background-color: #00B4F0;
+	border-radius: 2px;
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	padding: 3px 7px;
+}
+.tokenfield .v-button-emphasize, .tokenfield .v-button-emphasize:focus {
 	background-color: #EC0C6D;
 }
 .tokenfield .v-button-link .v-button-caption {
@@ -26,7 +33,15 @@
 .tokentextfield .v-filterselect-button:hover {
 	background: transparent url(input-right.png) no-repeat right top;
 }
+.black .tokentextfield .v-filterselect-button, 
+.black .tokentextfield .v-filterselect-button:hover {
+	background: transparent url(black-input-right.png) no-repeat right top;
+}
 .tokentextfield .v-filterselect-focus .v-filterselect-button, 
 .tokentextfield .v-filterselect-focus .v-filterselect-button:hover {
 	background: transparent url(input-right.png) no-repeat right -24px;
+}
+.black .tokentextfield .v-filterselect-focus .v-filterselect-button, 
+.black .tokentextfield .v-filterselect-focus .v-filterselect-button:hover {
+	background: transparent url(black-input-right.png) no-repeat right -24px;
 }
