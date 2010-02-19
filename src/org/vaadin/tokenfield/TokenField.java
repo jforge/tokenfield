@@ -25,8 +25,7 @@ import com.vaadin.ui.Button.ClickEvent;
  * selections are not allowed.
  * 
  * <p>
- * TokenField defaults to using CssLayout, but virtually any Layout can
- * be used.
+ * TokenField defaults to using CssLayout, but virtually any Layout can be used.
  * </p>
  * 
  * <p>
@@ -53,6 +52,21 @@ import com.vaadin.ui.Button.ClickEvent;
  * The content of the input (ComboBox) can be bound to a Container datasource,
  * and filtering can be used. Note that the TokenField can select values that
  * are not present in the ComboBox.<br/>
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
  * Also note that if you use {@link #setTokenCaptionPropertyId(Object)} (to use
  * a specific property as token caption) AND allow new tokens to be input (
  * {@link #setNewTokensAllowed(boolean)}, you should probably use a custom
@@ -93,9 +107,9 @@ public class TokenField extends CustomField implements Container.Editor {
 
     public static final String STYLE_TOKENFIELD = "tokenfield";
     public static final String STYLE_TOKENTEXTFIELD = "tokentextfield";
-    
+
     public static final String STYLE_BUTTON_EMPHAZISED = "emphasize";
-    
+
     /**
      * The layout currently in use
      */
@@ -216,9 +230,9 @@ public class TokenField extends CustomField implements Container.Editor {
                 final Object tokenId = event.getProperty().getValue();
                 if (tokenId != null) {
                     onTokenInput(tokenId);
+                    cb.setValue(null);
+                    cb.focus();
                 }
-                cb.setValue(null);
-                cb.focus();
             }
         });
 
@@ -251,6 +265,7 @@ public class TokenField extends CustomField implements Container.Editor {
                         }
                     }
                 }
+                cb.focus();
             }
 
         });
@@ -279,22 +294,36 @@ public class TokenField extends CustomField implements Container.Editor {
     }
 
     /*
-     * Essentially rebuilds from scratch when the internal value is set; this
-     * could be more intelligent, but since only the simplest additions can be
-     * made w/o rebuild, this is ok for now.
+     * Might create a HashSet or two unnecessarily from time to time, but seems
+     * clearer that way.
      * 
      * @see org.vaadin.tokenfield.CustomField#setInternalValue(java.lang.Object)
      */
     protected void setInternalValue(Object newValue) {
-        super.setInternalValue(newValue);
-        layout.removeAllComponents();
-        buttons.clear();
-        layout.addComponent(cb);
+
         Set<Object> vals = (Set<Object>) newValue;
-        if (vals != null) {
-            for (Object id : vals) {
-                addTokenButton(id);
-            }
+        Set<Object> old = buttons.keySet();
+
+        super.setInternalValue(newValue);
+
+        if (old == null) {
+            old = new HashSet<Object>();
+        }
+
+        if (vals == null) {
+            vals = new HashSet<Object>();
+        }
+
+        Set<Object> remove = new HashSet<Object>(old);
+        Set<Object> add = new HashSet<Object>(vals);
+        remove.removeAll(vals);
+        add.removeAll(old);
+
+        for (Object tokenId : remove) {
+            removeTokenButton(tokenId);
+        }
+        for (Object tokenId : add) {
+            addTokenButton(tokenId);
         }
     }
 
@@ -302,7 +331,7 @@ public class TokenField extends CustomField implements Container.Editor {
      * Called when the user is adding a new token via the UI; called after the
      * newItemHandler. Can be used to make customize the adding process; e.g to
      * notify that the token was not added because it's duplicate, to ask for
-     * additional information, or to dissalow addition due to some heuristics
+     * additional information, or to disallow addition due to some heuristics
      * (not both A and Q).<br/>
      * The default is to call {@link #addToken(Object)} which will add the token
      * if it's not a duplicate.
@@ -379,7 +408,6 @@ public class TokenField extends CustomField implements Container.Editor {
         }
         HashSet<Object> newSet = new LinkedHashSet<Object>(set);
         newSet.add(tokenId);
-        addTokenButton(tokenId);
         setValue(newSet);
     }
 
@@ -394,15 +422,19 @@ public class TokenField extends CustomField implements Container.Editor {
      *            the token to remove
      */
     public void removeToken(Object tokenId) {
-        Button button = buttons.get(tokenId);
-        layout.removeComponent(button);
-        buttons.remove(button);
         Set<Object> set = (Set<Object>) getValue();
         LinkedHashSet<Object> newSet = new LinkedHashSet<Object>(set);
         newSet.remove(tokenId);
-        if (set == null || !newSet.containsAll(set)) {
-            setValue(newSet);
-        }
+
+        setValue(newSet);
+
+    }
+
+    private void removeTokenButton(Object tokenId) {
+        Button button = buttons.get(tokenId);
+        layout.removeComponent(button);
+        buttons.remove(tokenId);
+
     }
 
     /**
@@ -656,7 +688,7 @@ public class TokenField extends CustomField implements Container.Editor {
     }
 
     /**
-     * Gets all tokenIds currenlty in the token container.
+     * Gets all tokenIds currently in the token container.
      * 
      * @return a collection of all tokenIds in the container
      */
