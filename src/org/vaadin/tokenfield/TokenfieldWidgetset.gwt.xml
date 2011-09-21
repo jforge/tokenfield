@@ -3,6 +3,6 @@
 <module>
 	<inherits name="com.vaadin.terminal.gwt.DefaultWidgetSet" />
 	
-    <stylesheet src="styles.css"/>
+    <stylesheet src="tokenfield/styles.css"/>
 
 </module>
