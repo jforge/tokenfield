@@ -4,18 +4,23 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
 import com.vaadin.terminal.Resource;
+import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.ui.AbstractSelect.NewItemHandler;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.Button.ClickEvent;
 import com.vaadin.ui.ComboBox;
+import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
+import com.vaadin.ui.CustomField;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
-import com.vaadin.ui.AbstractSelect.NewItemHandler;
-import com.vaadin.ui.Button.ClickEvent;
+import com.vaadin.ui.themes.Reindeer;
 
 /**
  * 
@@ -53,6 +58,62 @@ import com.vaadin.ui.Button.ClickEvent;
  * The content of the input (ComboBox) can be bound to a Container datasource,
  * and filtering can be used. Note that the TokenField can select values that
  * are not present in the ComboBox.<br/>
+ * <p>
+ * The content of the input (ComboBox) can be bound to a Container datasource,
+ * and filtering can be used. Note that the TokenField can select values that
+ * are not present in the ComboBox.<br/>
+ * <p>
+ * The content of the input (ComboBox) can be bound to a Container datasource,
+ * and filtering can be used. Note that the TokenField can select values that
+ * are not present in the ComboBox.<br/>
+ * <p>
+ * The content of the input (ComboBox) can be bound to a Container datasource,
+ * and filtering can be used. Note that the TokenField can select values that
+ * are not present in the ComboBox.<br/><p>
+ * The content of the input (ComboBox) can be bound to a Container datasource,
+ * and filtering can be used. Note that the TokenField can select values that
+ * are not present in the ComboBox.<br/>
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
  * Also note that if you use {@link #setTokenCaptionPropertyId(Object)} (to use
  * a specific property as token caption) AND allow new tokens to be input (
  * {@link #setNewTokensAllowed(boolean)}, you should probably use a custom
@@ -246,21 +307,7 @@ public class TokenField extends CustomField implements Container.Editor {
                 }
                 onTokenInput(tokenId);
                 if (rememberNewTokens) {
-                    if (cb.addItem(getTokenCaption(tokenId)) != null) {
-                        // Sets the caption property, if used
-                        if (getTokenCaptionPropertyId() != null) {
-                            try {
-                                cb.getContainerProperty(tokenId,
-                                        getTokenCaptionPropertyId()).setValue(
-                                        tokenId);
-                            } catch (final Property.ConversionException ignored) {
-                                /*
-                                 * The conversion exception is safely ignored,
-                                 * the caption is just missing
-                                 */
-                            }
-                        }
-                    }
+                    rememberToken(tokenId);
                 }
                 cb.focus();
             }
@@ -269,6 +316,18 @@ public class TokenField extends CustomField implements Container.Editor {
 
         setLayout(lo);
 
+    }
+
+    protected void rememberToken(String tokenId) {
+        if (cb.addItem(getTokenCaption(tokenId)) != null) {
+            // Sets the caption property, if used
+            if (getTokenCaptionPropertyId() != null) {
+
+                cb.getContainerProperty(tokenId, getTokenCaptionPropertyId())
+                        .setValue(tokenId);
+
+            }
+        }
     }
 
     /*
@@ -464,7 +523,7 @@ public class TokenField extends CustomField implements Container.Editor {
         button.setCaption(getTokenCaption(tokenId) + " ×");
         button.setIcon(getTokenIcon(tokenId));
         button.setDescription("Click to remove");
-        button.setStyleName(Button.STYLE_LINK);
+        button.setStyleName(Reindeer.BUTTON_LINK);
     }
 
     /**
@@ -482,12 +541,13 @@ public class TokenField extends CustomField implements Container.Editor {
      * @param newLayout
      *            the layout to use
      */
-    public void setLayout(Layout newLayout) {
+    protected void setLayout(Layout newLayout) {
         if (layout != null) {
             layout.removeAllComponents();
         }
         layout = newLayout;
-        setCompositionRoot(layout);
+        // TODO
+        // setCompositionRoot(layout);
         rebuild();
     }
 
@@ -667,7 +727,7 @@ public class TokenField extends CustomField implements Container.Editor {
      * @see ComboBox#getItemCaptionMode()
      * @return the current caption mode
      */
-    public int getTokenCaptionMode() {
+    public ItemCaptionMode getTokenCaptionMode() {
         return cb.getItemCaptionMode();
     }
 
@@ -730,7 +790,7 @@ public class TokenField extends CustomField implements Container.Editor {
     -*/
 
     @Override
-    public void setHeight(float height, int unit) {
+    public void setHeight(float height, Unit unit) {
         if (this.layout != null) {
             this.layout.setHeight(height, unit);
         }
@@ -738,7 +798,7 @@ public class TokenField extends CustomField implements Container.Editor {
     }
 
     @Override
-    public void setWidth(float width, int unit) {
+    public void setWidth(float width, Unit unit) {
         if (this.layout != null) {
             this.layout.setWidth(width, unit);
         }
@@ -769,11 +829,11 @@ public class TokenField extends CustomField implements Container.Editor {
         this.cb.setWidth(width);
     }
 
-    public void setInputHeight(float height, int unit) {
+    public void setInputHeight(float height, Unit unit) {
         this.cb.setHeight(height, unit);
     }
 
-    public void setInputWidth(float width, int unit) {
+    public void setInputWidth(float width, Unit unit) {
         this.cb.setWidth(width, unit);
     }
 
@@ -812,7 +872,7 @@ public class TokenField extends CustomField implements Container.Editor {
      * @see ComboBox#setItemCaptionMode(int)
      * @param mode
      */
-    public void setTokenCaptionMode(int mode) {
+    public void setTokenCaptionMode(ItemCaptionMode mode) {
         cb.setItemCaptionMode(mode);
     }
 
@@ -858,6 +918,26 @@ public class TokenField extends CustomField implements Container.Editor {
     @Override
     public Class<?> getType() {
         return Set.class;
+    }
+
+    public void setBuffered(boolean buffered) {
+        // TODO Auto-generated method stub
+
+    }
+
+    public boolean isBuffered() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
+    public void changeVariables(Object source, Map<String, Object> variables) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    protected Component initContent() {
+        return layout;
     }
 
 }

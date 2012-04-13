@@ -7,12 +7,12 @@ import java.util.Set;
 
 import org.vaadin.tokenfield.TokenField.InsertPosition;
 
-import com.vaadin.Application;
 import com.vaadin.data.Container;
 import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
+import com.vaadin.terminal.WrappedRequest;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -26,25 +26,24 @@ import com.vaadin.ui.Layout;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.NativeSelect;
 import com.vaadin.ui.Panel;
+import com.vaadin.ui.Root;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
-public class TokenfieldDemo extends Application {
-
-    private static final long serialVersionUID = -5482533598574403330L;
+public class DemoRoot extends Root {
 
     @Override
-    public void init() {
-        // setMainWindow(new DemoWindow());
+    protected void init(WrappedRequest request) {
+
+        setContent(new Content());
     }
 
-    class DemoWindow extends Window {
+    static class Content extends VerticalLayout {
 
-        private static final long serialVersionUID = -6173017768248991149L;
-
-        DemoWindow() {
+        Content() {
             // Just add some spacing so it looks nicer
-            ((VerticalLayout) getContent()).setSpacing(true);
+            setSpacing(true);
+            setMargin(true);
 
             {
                 /*
@@ -73,10 +72,21 @@ public class TokenfieldDemo extends Application {
                     @Override
                     protected void onTokenInput(Object tokenId) {
                         String[] tokens = ((String) tokenId).split(",");
-                        for (int i = 0; i < tokens.length; i++) {
-                            String token = tokens[i].trim();
+                        for (String token : tokens) {
+                            token = token.trim();
                             if (token.length() > 0) {
                                 super.onTokenInput(token);
+                            }
+                        }
+                    }
+
+                    @Override
+                    protected void rememberToken(String tokenId) {
+                        String[] tokens = ((String) tokenId).split(",");
+                        for (String token : tokens) {
+                            token = token.trim();
+                            if (token.length() > 0) {
+                                super.rememberToken(token);
                             }
                         }
                     }
@@ -188,7 +198,7 @@ public class TokenfieldDemo extends Application {
                  * position and the layout used.
                  */
 
-                Panel p = new Panel("Layout and InsertPosition");
+                final Panel p = new Panel("Layout and InsertPosition");
                 ((VerticalLayout) p.getContent()).setSpacing(true);
                 addComponent(p);
 
@@ -200,10 +210,12 @@ public class TokenfieldDemo extends Application {
 
                 // w/ datasource, no configurator
                 final TokenField f = new TokenField();
-                f.setContainerDataSource(tokens);
-                // f.setNewTokensAllowed(false);
-                f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS);
-                f.setInputPrompt("firstname.lastname@example.com");
+                /*
+                 * f.setContainerDataSource(tokens); //
+                 * f.setNewTokensAllowed(false);
+                 * f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS);
+                 * f.setInputPrompt("firstname.lastname@example.com"); -
+                 */
                 p.addComponent(f);
 
                 final NativeSelect lo = new NativeSelect("Layout");
@@ -218,6 +230,8 @@ public class TokenfieldDemo extends Application {
 
                     private static final long serialVersionUID = -5644191531547324609L;
 
+                    private TokenField curr = f;
+
                     public void valueChange(ValueChangeEvent event) {
                         try {
                             Layout l = (Layout) ((Class) event.getProperty()
@@ -225,7 +239,9 @@ public class TokenfieldDemo extends Application {
                             if (l instanceof GridLayout) {
                                 ((GridLayout) l).setColumns(3);
                             }
-                            f.setLayout(l);
+                            p.removeComponent(curr);
+                            curr = new TokenField(l);
+                            p.addComponent(curr);
                         } catch (Exception e) {
                             getRoot().showNotification("Ouch!",
                                     "Could not make a " + lo.getValue());
@@ -320,61 +336,10 @@ public class TokenfieldDemo extends Application {
     }
 
     /**
-     * This is the window used to confirm removal
-     */
-    class RemoveWindow extends Window {
-
-        private static final long serialVersionUID = -7140907025722511460L;
-
-        RemoveWindow(final Contact c, final TokenField f) {
-            super("Remove " + c.getName() + "?");
-
-            setStyleName("black");
-            setResizable(false);
-            center();
-            setModal(true);
-            setWidth("250px");
-            setClosable(false);
-
-            // layout buttons horizontally
-            HorizontalLayout hz = new HorizontalLayout();
-            addComponent(hz);
-            hz.setSpacing(true);
-            hz.setWidth("100%");
-
-            Button cancel = new Button("Cancel", new Button.ClickListener() {
-
-                private static final long serialVersionUID = 7675170261217815011L;
-
-                public void buttonClick(ClickEvent event) {
-                    // TODO
-                    // f.getRoot().removeWindow(getWindow());
-                }
-            });
-            hz.addComponent(cancel);
-            hz.setComponentAlignment(cancel, Alignment.MIDDLE_LEFT);
-
-            Button remove = new Button("Remove", new Button.ClickListener() {
-
-                private static final long serialVersionUID = 5004855711589989635L;
-
-                public void buttonClick(ClickEvent event) {
-                    f.removeToken(c);
-                    // TODO
-                    // f.getRoot().removeWindow(getWindow());
-                }
-            });
-            hz.addComponent(remove);
-            hz.setComponentAlignment(remove, Alignment.MIDDLE_RIGHT);
-
-        }
-    }
-
-    /**
      * This is the window used to add new contacts to the 'address book'. It
      * does not do proper validation - you can add weird stuff.
      */
-    class EditContactWindow extends Window {
+    public static class EditContactWindow extends Window {
         private Contact contact;
 
         EditContactWindow(final String t, final TokenField f) {
@@ -412,8 +377,7 @@ public class TokenfieldDemo extends Application {
                         contact.setEmail(contact.getName());
                     }
                     f.addToken(contact);
-                    // TODO
-                    // f.getRoot().removeWindow(getWindow());
+                    f.getRoot().removeWindow(EditContactWindow.this);
                 }
             });
             hz.addComponent(dont);
@@ -432,8 +396,7 @@ public class TokenfieldDemo extends Application {
                             ((BeanItemContainer) f.getContainerDataSource())
                                     .addBean(contact);
                             f.addToken(contact);
-                            // TODO
-                            // f.getRoot().removeWindow(getWindow());
+                            f.getRoot().removeWindow(EditContactWindow.this);
                         }
                     });
             hz.addComponent(add);
@@ -452,7 +415,7 @@ public class TokenfieldDemo extends Application {
             "McGoff", "Halas", "Jones", "Beck", "Sheridan", "Picard", "Hill",
             "Fielding", "Einstein" };
 
-    private Container generateTestContainer() {
+    private static Container generateTestContainer() {
         BeanItemContainer<Contact> container = new BeanItemContainer<Contact>(
                 Contact.class);
 
@@ -478,7 +441,7 @@ public class TokenfieldDemo extends Application {
     /**
      * Example Contact -bean, mostly generated setters/getters.
      */
-    public class Contact {
+    public static class Contact {
         private String name;
         private String email;
 
@@ -522,4 +485,52 @@ public class TokenfieldDemo extends Application {
 
     }
 
+    /**
+     * This is the window used to confirm removal
+     */
+    public static class RemoveWindow extends Window {
+
+        private static final long serialVersionUID = -7140907025722511460L;
+
+        RemoveWindow(final Contact c, final TokenField f) {
+            super("Remove " + c.getName() + "?");
+
+            setStyleName("black");
+            setResizable(false);
+            center();
+            setModal(true);
+            setWidth("250px");
+            setClosable(false);
+
+            // layout buttons horizontally
+            HorizontalLayout hz = new HorizontalLayout();
+            addComponent(hz);
+            hz.setSpacing(true);
+            hz.setWidth("100%");
+
+            Button cancel = new Button("Cancel", new Button.ClickListener() {
+
+                private static final long serialVersionUID = 7675170261217815011L;
+
+                public void buttonClick(ClickEvent event) {
+                    f.getRoot().removeWindow(RemoveWindow.this);
+                }
+            });
+            hz.addComponent(cancel);
+            hz.setComponentAlignment(cancel, Alignment.MIDDLE_LEFT);
+
+            Button remove = new Button("Remove", new Button.ClickListener() {
+
+                private static final long serialVersionUID = 5004855711589989635L;
+
+                public void buttonClick(ClickEvent event) {
+                    f.removeToken(c);
+                    f.getRoot().removeWindow(RemoveWindow.this);
+                }
+            });
+            hz.addComponent(remove);
+            hz.setComponentAlignment(remove, Alignment.MIDDLE_RIGHT);
+
+        }
+    }
 }
