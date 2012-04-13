@@ -1,35 +1,18 @@
 package org.vaadin.tokenfield.client.ui;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.user.client.ui.TextBox;
-import com.vaadin.terminal.gwt.client.ApplicationConnection;
-import com.vaadin.terminal.gwt.client.UIDL;
-import com.vaadin.terminal.gwt.client.ui.VFilterSelect;
+import com.vaadin.terminal.gwt.client.ui.combobox.VFilterSelect;
 
-/**
- * Client side widget which communicates with the server. Messages from the
- * server are shown as HTML and mouse clicks are sent to the server.
- */
 public class VTokenField extends VFilterSelect {
 
-    /** The client side widget identifier */
-    protected String paintableId;
-
-    /** Reference to the server connection object. */
-    protected ApplicationConnection client;
-
-    protected boolean readonly = false;
-    protected boolean enabled = false;
     protected boolean after = false;
 
-    /**
-     * The constructor should first call super() to initialize the component and
-     * then handle any initialization relevant to Vaadin.
-     */
-    public VTokenField() {
-        super();
-    }
+    protected List<DeleteListener> listeners = new LinkedList<DeleteListener>();
 
     public void onKeyDown(KeyDownEvent event) {
         if (!enabled || readonly) {
@@ -41,7 +24,7 @@ public class VTokenField extends VFilterSelect {
                     && "".equals(((TextBox) event.getSource()).getText())) {
                 if ((kc == KeyCodes.KEY_BACKSPACE && !after)
                         || (kc == KeyCodes.KEY_DELETE && after)) {
-                    client.updateVariable(paintableId, "del", true, true);
+                    fireDeleteListeners();
                     return;
                 }
             }
@@ -51,16 +34,22 @@ public class VTokenField extends VFilterSelect {
 
     }
 
-    /**
-     * Called whenever an update is received from the server
-     */
-    public void updateFromUIDL(UIDL uidl, ApplicationConnection client) {
-        readonly = uidl.hasAttribute("readonly");
-        enabled = !uidl.hasAttribute("disabled");
-        after = uidl.hasAttribute("after");
-        paintableId = uidl.getId();
-        this.client = client;
-        super.updateFromUIDL(uidl, client);
+    private void fireDeleteListeners() {
+        for (DeleteListener l : listeners) {
+            l.onDelete();
+        }
+    }
+
+    public void addListener(DeleteListener l) {
+        listeners.add(l);
+    }
+
+    public void removeListener(DeleteListener l) {
+        listeners.remove(l);
+    }
+
+    public interface DeleteListener {
+        public void onDelete();
     }
 
 }

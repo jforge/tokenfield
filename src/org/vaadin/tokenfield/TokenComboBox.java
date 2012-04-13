@@ -1,20 +1,26 @@
 package org.vaadin.tokenfield;
 
-import java.util.Map;
+import org.vaadin.tokenfield.client.ui.TokenFieldServerRpc;
 
 import com.vaadin.terminal.PaintException;
 import com.vaadin.terminal.PaintTarget;
 import com.vaadin.ui.ComboBox;
 
-@com.vaadin.ui.ClientWidget(org.vaadin.tokenfield.client.ui.VTokenField.class)
 public abstract class TokenComboBox extends ComboBox {
 
     private static final long serialVersionUID = 8382983756053298383L;
 
     protected TokenField.InsertPosition insertPosition;
 
+    private TokenFieldServerRpc rpc = new TokenFieldServerRpc() {
+        public void deleteToken() {
+            onDelete();
+        }
+    };
+
     public TokenComboBox(TokenField.InsertPosition insertPosition) {
         this.insertPosition = insertPosition;
+        registerRpc(rpc);
     }
 
     @Override
@@ -23,14 +29,6 @@ public abstract class TokenComboBox extends ComboBox {
         target.addVariable(this, "del", false);
         if (insertPosition == TokenField.InsertPosition.AFTER) {
             target.addAttribute("after", true);
-        }
-    }
-
-    @Override
-    public void changeVariables(Object source, Map variables) {
-        super.changeVariables(source, variables);
-        if (variables.containsKey("del")) {
-            onDelete();
         }
     }
 
