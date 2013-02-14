@@ -6,7 +6,7 @@ import java.util.List;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.user.client.ui.TextBox;
-import com.vaadin.terminal.gwt.client.ui.combobox.VFilterSelect;
+import com.vaadin.client.ui.VFilterSelect;
 
 public class VTokenField extends VFilterSelect {
 

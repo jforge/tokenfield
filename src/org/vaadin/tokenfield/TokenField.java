@@ -4,12 +4,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 import com.vaadin.data.Container;
 import com.vaadin.data.Property;
-import com.vaadin.terminal.Resource;
+import com.vaadin.server.Resource;
+import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
 import com.vaadin.ui.AbstractSelect.NewItemHandler;
 import com.vaadin.ui.Button;
@@ -69,10 +69,94 @@ import com.vaadin.ui.themes.Reindeer;
  * <p>
  * The content of the input (ComboBox) can be bound to a Container datasource,
  * and filtering can be used. Note that the TokenField can select values that
+ * are not present in the ComboBox.<br/>
+ * <p>
+ * The content of the input (ComboBox) can be bound to a Container datasource,
+ * and filtering can be used. Note that the TokenField can select values that
+ * are not present in the ComboBox.<br/>
+ * <p>
+ * The content of the input (ComboBox) can be bound to a Container datasource,
+ * and filtering can be used. Note that the TokenField can select values that
+ * are not present in the ComboBox.<br/>
+ * <p>
+ * The content of the input (ComboBox) can be bound to a Container datasource,
+ * and filtering can be used. Note that the TokenField can select values that
  * are not present in the ComboBox.<br/><p>
  * The content of the input (ComboBox) can be bound to a Container datasource,
  * and filtering can be used. Note that the TokenField can select values that
  * are not present in the ComboBox.<br/>
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
  * 
  * 
  * 
@@ -671,7 +755,7 @@ public class TokenField extends CustomField implements Container.Editor {
      * @param filteringMode
      *            the desired filtering mode
      */
-    public void setFilteringMode(int filteringMode) {
+    public void setFilteringMode(FilteringMode filteringMode) {
         cb.setFilteringMode(filteringMode);
     }
 
@@ -682,7 +766,7 @@ public class TokenField extends CustomField implements Container.Editor {
      * @param filteringMode
      *            the desired filtering mode
      */
-    public int getFilteringMode() {
+    public FilteringMode getFilteringMode() {
         return cb.getFilteringMode();
     }
 
@@ -918,21 +1002,6 @@ public class TokenField extends CustomField implements Container.Editor {
     @Override
     public Class<?> getType() {
         return Set.class;
-    }
-
-    public void setBuffered(boolean buffered) {
-        // TODO Auto-generated method stub
-
-    }
-
-    public boolean isBuffered() {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    public void changeVariables(Object source, Map<String, Object> variables) {
-        // TODO Auto-generated method stub
-
     }
 
     @Override

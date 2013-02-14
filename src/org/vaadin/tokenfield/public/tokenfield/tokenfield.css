@@ -1,5 +1,5 @@
 /* tokens */
-.tokenfield .v-button-link {
+.v-widget.tokenfield .v-button-link {
 	background-color: #00B4F0;
 	border-radius: 2px;
 	-moz-border-radius: 2px;
@@ -7,7 +7,7 @@
 	height: 23px;
 	padding: 4px 7px;
 }
-.tokenfield .v-button-link:focus {
+.v-widget.tokenfield .v-button-link:focus {
 	background-color: #00B4F0;
 	border-radius: 2px;
 	-moz-border-radius: 2px;
@@ -15,10 +15,10 @@
 	height: 23px;
 	padding: 4px 7px;
 }
-.tokenfield .v-button-emphasize, .tokenfield .v-button-emphasize:focus {
+.v-widget.tokenfield .v-button-emphasize, .v-widget.tokenfield .v-button-emphasize:focus {
 	background-color: #EC0C6D;
 }
-.tokenfield .v-button-link .v-button-caption {
+.v-widget.tokenfield .v-button-link .v-button-caption {
 	color: #fff;
 	text-decoration: none;
 }
@@ -38,14 +38,14 @@
 }
 
 /* CssLayout special treatment */
-.tokenfield .v-csslayout div {
+.v-widget.tokenfield .v-csslayout div {
 	float: left;
 }
-.tokenfield .v-csslayout .v-button-link {
+.v-widget.tokenfield .v-csslayout .v-button-link {
 	margin: 0 1px 1px 0;
 }
 
-.tokenfield .v-csslayout .v-button-link {
+.v-widget.tokenfield .v-csslayout .v-button-link {
 	height: 24px;
 }
 
