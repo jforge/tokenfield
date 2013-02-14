@@ -4,9 +4,9 @@ import org.vaadin.tokenfield.TokenComboBox;
 import org.vaadin.tokenfield.client.ui.VTokenField.DeleteListener;
 
 import com.google.gwt.core.client.GWT;
-import com.vaadin.terminal.gwt.client.communication.RpcProxy;
-import com.vaadin.terminal.gwt.client.ui.Connect;
-import com.vaadin.terminal.gwt.client.ui.combobox.ComboBoxConnector;
+import com.vaadin.client.communication.RpcProxy;
+import com.vaadin.client.ui.combobox.ComboBoxConnector;
+import com.vaadin.shared.ui.Connect;
 
 @Connect(TokenComboBox.class)
 public class TokenFieldConnector extends ComboBoxConnector {

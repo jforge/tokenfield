@@ -12,7 +12,8 @@ import com.vaadin.data.Property.ValueChangeEvent;
 import com.vaadin.data.Property.ValueChangeListener;
 import com.vaadin.data.util.BeanItem;
 import com.vaadin.data.util.BeanItemContainer;
-import com.vaadin.terminal.WrappedRequest;
+import com.vaadin.server.VaadinRequest;
+import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
@@ -25,15 +26,17 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
 import com.vaadin.ui.ListSelect;
 import com.vaadin.ui.NativeSelect;
+import com.vaadin.ui.Notification;
+import com.vaadin.ui.Notification.Type;
 import com.vaadin.ui.Panel;
-import com.vaadin.ui.Root;
+import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 
-public class DemoRoot extends Root {
+public class DemoRoot extends UI {
 
     @Override
-    protected void init(WrappedRequest request) {
+    protected void init(VaadinRequest request) {
 
         setContent(new Content());
     }
@@ -52,10 +55,13 @@ public class DemoRoot extends Root {
                  */
 
                 Panel p = new Panel("Basic");
+                VerticalLayout l = new VerticalLayout();
+                l.setMargin(true);
+                p.setContent(l);
                 addComponent(p);
 
                 TokenField f = new TokenField("Add tags");
-                p.addComponent(f);
+                l.addComponent(f);
 
             }
 
@@ -65,6 +71,9 @@ public class DemoRoot extends Root {
                  */
 
                 Panel p = new Panel("Comma separated");
+                VerticalLayout l = new VerticalLayout();
+                l.setMargin(true);
+                p.setContent(l);
                 addComponent(p);
 
                 TokenField f = new TokenField() {
@@ -93,7 +102,7 @@ public class DemoRoot extends Root {
 
                 };
                 f.setInputPrompt("tag, another, yetanother");
-                p.addComponent(f);
+                l.addComponent(f);
 
             }
 
@@ -109,7 +118,10 @@ public class DemoRoot extends Root {
                  */
 
                 Panel p = new Panel("Full featured example");
-                p.getContent().setStyleName("black");
+                VerticalLayout l = new VerticalLayout();
+                l.setMargin(true);
+                p.setContent(l);
+                l.setStyleName("black");
                 addComponent(p);
 
                 // generate container
@@ -129,14 +141,13 @@ public class DemoRoot extends Root {
                         Contact c = new Contact("", tokenId.toString());
                         if (set != null && set.contains(c)) {
                             // duplicate
-                            getRoot().showNotification(
-                                    getTokenCaption(tokenId)
-                                            + " is already added");
+                            Notification.show(getTokenCaption(tokenId)
+                                    + " is already added");
                         } else {
                             if (!cb.containsId(c)) {
                                 // don't add directly,
                                 // show custom "add to address book" dialog
-                                getRoot().addWindow(
+                                getUI().addWindow(
                                         new EditContactWindow(tokenId
                                                 .toString(), this));
 
@@ -149,7 +160,7 @@ public class DemoRoot extends Root {
 
                     // show confirm dialog
                     protected void onTokenClick(final Object tokenId) {
-                        getRoot().addWindow(
+                        getUI().addWindow(
                                 new RemoveWindow((Contact) tokenId, this));
                     }
 
@@ -174,13 +185,13 @@ public class DemoRoot extends Root {
                         }
                     }
                 };
-                p.addComponent(f);
+                l.addComponent(f);
                 // This would turn on the "fake tekstfield" look:
                 f.setStyleName(TokenField.STYLE_TOKENFIELD);
                 f.setWidth("100%");
                 f.setInputWidth("100%");
                 f.setContainerDataSource(tokens); // 'address book'
-                f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS); // suggest
+                f.setFilteringMode(FilteringMode.CONTAINS); // suggest
                 f.setTokenCaptionPropertyId("name"); // use name in input
                 f.setInputPrompt("Enter contact name or new email address");
                 f.setRememberNewTokens(false); // we'll do this via the dialog
@@ -199,11 +210,14 @@ public class DemoRoot extends Root {
                  */
 
                 final Panel p = new Panel("Layout and InsertPosition");
-                ((VerticalLayout) p.getContent()).setSpacing(true);
+                final VerticalLayout l = new VerticalLayout();
+                l.setMargin(true);
+                p.setContent(l);
+                l.setSpacing(true);
                 addComponent(p);
 
                 HorizontalLayout controls = new HorizontalLayout();
-                p.addComponent(controls);
+                l.addComponent(controls);
 
                 // generate container
                 Container tokens = generateTestContainer();
@@ -216,7 +230,7 @@ public class DemoRoot extends Root {
                  * f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS);
                  * f.setInputPrompt("firstname.lastname@example.com"); -
                  */
-                p.addComponent(f);
+                l.addComponent(f);
 
                 final NativeSelect lo = new NativeSelect("Layout");
                 lo.setImmediate(true);
@@ -226,12 +240,12 @@ public class DemoRoot extends Root {
                 lo.addItem(CssLayout.class);
                 lo.setNullSelectionAllowed(false);
                 lo.setValue(f.getLayout().getClass());
-                lo.addListener(new ValueChangeListener() {
-
+                lo.addValueChangeListener(new ValueChangeListener() {
                     private static final long serialVersionUID = -5644191531547324609L;
 
                     private TokenField curr = f;
 
+                    @Override
                     public void valueChange(ValueChangeEvent event) {
                         try {
                             Layout l = (Layout) ((Class) event.getProperty()
@@ -239,17 +253,19 @@ public class DemoRoot extends Root {
                             if (l instanceof GridLayout) {
                                 ((GridLayout) l).setColumns(3);
                             }
-                            p.removeComponent(curr);
+                            l.removeComponent(curr);
                             curr = new TokenField(l);
-                            p.addComponent(curr);
+                            l.addComponent(curr);
                         } catch (Exception e) {
-                            getRoot().showNotification("Ouch!",
-                                    "Could not make a " + lo.getValue());
+                            Notification.show("Ouch!",
+                                    "Could not make a " + lo.getValue(),
+                                    Type.ERROR_MESSAGE);
                             lo.setValue(f.getLayout().getClass());
                             e.printStackTrace();
                         }
                     }
                 });
+
                 controls.addComponent(lo);
 
                 final NativeSelect ip = new NativeSelect("InsertPosition");
@@ -258,7 +274,7 @@ public class DemoRoot extends Root {
                 ip.addItem(InsertPosition.BEFORE);
                 ip.setNullSelectionAllowed(false);
                 ip.setValue(f.getTokenInsertPosition());
-                ip.addListener(new ValueChangeListener() {
+                ip.addValueChangeListener(new ValueChangeListener() {
 
                     private static final long serialVersionUID = 518234140117517538L;
 
@@ -271,12 +287,12 @@ public class DemoRoot extends Root {
                 final CheckBox cb = new CheckBox("Read-only");
                 cb.setImmediate(true);
                 cb.setValue(f.isReadOnly());
-                cb.addListener(new ValueChangeListener() {
+                cb.addValueChangeListener(new ValueChangeListener() {
 
                     private static final long serialVersionUID = 8812909594903040042L;
 
                     public void valueChange(ValueChangeEvent event) {
-                        f.setReadOnly(cb.booleanValue());
+                        f.setReadOnly(cb.getValue());
                     }
                 });
                 controls.addComponent(cb);
@@ -312,9 +328,9 @@ public class DemoRoot extends Root {
                 // TokenField bound to the ListSelect above, CssLayout so that
                 // it wraps nicely.
                 final TokenField f = new TokenField(
-                        "TokenField, writeTrough=false, click << to commit");
+                        "TokenField, buffered, click << to commit");
                 f.setContainerDataSource(list.getContainerDataSource());
-                f.setWriteThrough(false);
+                f.setBuffered(true);
                 // f.setNewTokensAllowed(false);
                 f.setFilteringMode(ComboBox.FILTERINGMODE_CONTAINS);
                 f.setPropertyDataSource(list);
@@ -344,6 +360,8 @@ public class DemoRoot extends Root {
 
         EditContactWindow(final String t, final TokenField f) {
             super("New Contact");
+            VerticalLayout l = new VerticalLayout();
+            setContent(l);
             if (t.contains("@")) {
                 contact = new Contact("", t);
             } else {
@@ -359,11 +377,11 @@ public class DemoRoot extends Root {
             Form form = new Form();
             form.setItemDataSource(new BeanItem<Contact>(contact));
             form.setImmediate(true);
-            addComponent(form);
+            l.addComponent(form);
 
             // layout buttons horizontally
             HorizontalLayout hz = new HorizontalLayout();
-            addComponent(hz);
+            l.addComponent(hz);
             hz.setSpacing(true);
             hz.setWidth("100%");
 
@@ -377,7 +395,7 @@ public class DemoRoot extends Root {
                         contact.setEmail(contact.getName());
                     }
                     f.addToken(contact);
-                    f.getRoot().removeWindow(EditContactWindow.this);
+                    f.getUI().removeWindow(EditContactWindow.this);
                 }
             });
             hz.addComponent(dont);
@@ -396,7 +414,7 @@ public class DemoRoot extends Root {
                             ((BeanItemContainer) f.getContainerDataSource())
                                     .addBean(contact);
                             f.addToken(contact);
-                            f.getRoot().removeWindow(EditContactWindow.this);
+                            f.getUI().removeWindow(EditContactWindow.this);
                         }
                     });
             hz.addComponent(add);
@@ -495,6 +513,9 @@ public class DemoRoot extends Root {
         RemoveWindow(final Contact c, final TokenField f) {
             super("Remove " + c.getName() + "?");
 
+            VerticalLayout l = new VerticalLayout();
+            setContent(l);
+
             setStyleName("black");
             setResizable(false);
             center();
@@ -504,7 +525,7 @@ public class DemoRoot extends Root {
 
             // layout buttons horizontally
             HorizontalLayout hz = new HorizontalLayout();
-            addComponent(hz);
+            l.addComponent(hz);
             hz.setSpacing(true);
             hz.setWidth("100%");
 
@@ -513,7 +534,7 @@ public class DemoRoot extends Root {
                 private static final long serialVersionUID = 7675170261217815011L;
 
                 public void buttonClick(ClickEvent event) {
-                    f.getRoot().removeWindow(RemoveWindow.this);
+                    f.getUI().removeWindow(RemoveWindow.this);
                 }
             });
             hz.addComponent(cancel);
@@ -525,7 +546,7 @@ public class DemoRoot extends Root {
 
                 public void buttonClick(ClickEvent event) {
                     f.removeToken(c);
-                    f.getRoot().removeWindow(RemoveWindow.this);
+                    f.getUI().removeWindow(RemoveWindow.this);
                 }
             });
             hz.addComponent(remove);
@@ -533,4 +554,5 @@ public class DemoRoot extends Root {
 
         }
     }
+
 }
