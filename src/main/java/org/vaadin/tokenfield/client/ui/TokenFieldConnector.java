@@ -5,7 +5,7 @@ import org.vaadin.tokenfield.client.ui.VTokenField.DeleteListener;
 
 import com.google.gwt.core.client.GWT;
 import com.vaadin.client.communication.RpcProxy;
-import com.vaadin.client.ui.combobox.ComboBoxConnector;
+import com.vaadin.v7.client.ui.combobox.ComboBoxConnector;
 import com.vaadin.shared.ui.Connect;
 
 @Connect(TokenComboBox.class)
@@ -33,7 +33,6 @@ public class TokenFieldConnector extends ComboBoxConnector {
 
     @Override
     protected VTokenField createWidget() {
-        // TODO Auto-generated method stub
         return GWT.create(VTokenField.class);
     }
 

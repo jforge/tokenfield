@@ -4,7 +4,7 @@ import org.vaadin.tokenfield.client.ui.TokenFieldServerRpc;
 
 import com.vaadin.server.PaintException;
 import com.vaadin.server.PaintTarget;
-import com.vaadin.ui.ComboBox;
+import com.vaadin.v7.ui.ComboBox;
 
 public abstract class TokenComboBox extends ComboBox {
 

@@ -6,21 +6,21 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import com.vaadin.data.Container;
-import com.vaadin.data.Property;
+import com.vaadin.v7.data.Container;
+import com.vaadin.v7.data.Property;
 import com.vaadin.server.Resource;
-import com.vaadin.shared.ui.combobox.FilteringMode;
-import com.vaadin.ui.AbstractSelect.ItemCaptionMode;
-import com.vaadin.ui.AbstractSelect.NewItemHandler;
+import com.vaadin.v7.shared.ui.combobox.FilteringMode;
+import com.vaadin.v7.ui.AbstractSelect.ItemCaptionMode;
+import com.vaadin.v7.ui.AbstractSelect.NewItemHandler;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.ComboBox;
+import com.vaadin.v7.ui.ComboBox;
 import com.vaadin.ui.Component;
 import com.vaadin.ui.CssLayout;
-import com.vaadin.ui.CustomField;
-import com.vaadin.ui.HorizontalLayout;
+import com.vaadin.v7.ui.CustomField;
+import com.vaadin.v7.ui.HorizontalLayout;
 import com.vaadin.ui.Layout;
-import com.vaadin.ui.themes.Reindeer;
+import com.vaadin.ui.themes.ValoTheme;
 
 /**
  * 
@@ -368,7 +368,7 @@ public class TokenField extends CustomField implements Container.Editor {
             private static final long serialVersionUID = 4370326413130922134L;
 
             public void valueChange(
-                    com.vaadin.data.Property.ValueChangeEvent event) {
+                    com.vaadin.v7.data.Property.ValueChangeEvent event) {
                 final Object tokenId = event.getProperty().getValue();
                 if (tokenId != null) {
                     onTokenInput(tokenId);
@@ -510,7 +510,7 @@ public class TokenField extends CustomField implements Container.Editor {
     private void addTokenButton(final Object val) {
         Button b = new Button();
         configureTokenButton(val, b);
-        b.addListener(new Button.ClickListener() {
+        b.addClickListener(new Button.ClickListener() {
             private static final long serialVersionUID = -1943432188848347317L;
 
             public void buttonClick(ClickEvent event) {
@@ -607,7 +607,7 @@ public class TokenField extends CustomField implements Container.Editor {
         button.setCaption(getTokenCaption(tokenId) + " ×");
         button.setIcon(getTokenIcon(tokenId));
         button.setDescription("Click to remove");
-        button.setStyleName(Reindeer.BUTTON_LINK);
+        button.setStyleName(ValoTheme.BUTTON_LINK);
     }
 
     /**
@@ -669,7 +669,7 @@ public class TokenField extends CustomField implements Container.Editor {
             return;
         }
         for (Button b : buttons.values()) {
-            b.setReadOnly(readOnly);
+            b.setEnabled(readOnly);
         }
         super.setReadOnly(readOnly);
         if (readOnly) {
